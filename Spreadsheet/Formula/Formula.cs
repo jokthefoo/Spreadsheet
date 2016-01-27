@@ -124,13 +124,28 @@ namespace Formulas
             String pattern = String.Format("({0}) | ({1}) | ({2}) | ({3}) | ({4})",
                                             lpPattern, rpPattern, opPattern, varPattern, doublePattern);
             int x;
+            double y;
             if (Regex.IsMatch(s, pattern, RegexOptions.IgnorePatternWhitespace))
             {
+                if(Regex.IsMatch(s, doublePattern, RegexOptions.IgnorePatternWhitespace)) // Make sure any doubles are positive
+                {
+                    if(double.TryParse(s, out y))
+                    {
+                        if(y < 0)
+                        {
+                            return false;
+                        }
+                    }
+                }
                 return true;
             }
-            else if (int.TryParse(s, out x))
+            else if (int.TryParse(s, out x))// Make sure any integers are positive
             {
-                return true;
+                if(x >= 0)
+                {
+                    return true;
+                }
+                return false;
             }
             else
             {

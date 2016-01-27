@@ -24,7 +24,7 @@ namespace FormulaTestCases
         [ExpectedException(typeof(FormulaFormatException))]
         public void MyConstruct1()
         {
-            Formula f = new Formula("(x5 + y) / 2");
+            Formula f = new Formula("(2.525 + y) / 2");
         }
 
         /// <summary>
