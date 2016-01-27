@@ -68,11 +68,7 @@ namespace Formulas
                 {
                     throw new FormulaFormatException("Too many closing parentheses.");
                 }
-                if(previousValue == "+" || previousValue == "-" || previousValue == "*" || previousValue == "/" || previousValue == "(")
-                {
-
-                }
-                previousValue = t;
+                CompareToPrev(previousValue, t);
             }
 
             if(lpCount != rpCount)
@@ -91,6 +87,11 @@ namespace Formulas
 
         }
 
+        /// <summary>
+        /// Compares the previous token to the current token to make sure it can follow the previous.
+        /// Throws exceptions.
+        /// Examples that throw: 2++2, 2 2
+        /// </summary>
         public void CompareToPrev(String prev, String current)
         {
             //Check if the previous token was an operator or an opening parentheses, and if it is followed by an operator or a closing parentheses throw exception.
@@ -105,6 +106,11 @@ namespace Formulas
             }
         }
 
+        /// <summary>
+        /// Checks each token that is passed to it to make sure the token is valid.
+        /// Returns true if the token is valid
+        /// Valid tokens are (,),+,-,*,/, numbers, and variables.
+        /// </summary>
         public bool IsValid(String s)
         {
             // Patterns for individual tokens

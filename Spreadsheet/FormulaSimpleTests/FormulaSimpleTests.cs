@@ -18,14 +18,53 @@ namespace FormulaTestCases
     public class UnitTests
     {
         /// <summary>
-        /// This tests that a syntactically incorrect parameter to Formula results
-        /// in a FormulaFormatException.
+        /// This is another syntax error I added
         /// </summary>
         [TestMethod]
         [ExpectedException(typeof(FormulaFormatException))]
-        public void Construct()
+        public void MyConstruct1()
         {
-            Formula f = new Formula("=(x5 + y) / 2");
+            Formula f = new Formula("(x5 + y) / 2");
+        }
+
+        /// <summary>
+        /// This is another syntax error I added testing first token validity
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void MyConstruct5()
+        {
+            Formula f = new Formula("(x5 + y)) / 2");
+        }
+
+        /// <summary>
+        /// This is another syntax error I added testing first token validity
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void MyConstruct2()
+        {
+            Formula f = new Formula(")2+2");
+        }
+
+        /// <summary>
+        /// This is another syntax error I added testing last token validity
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void MyConstruct3()
+        {
+            Formula f = new Formula("2+2(");
+        }
+
+        /// <summary>
+        /// This is another syntax error I added testing no tokens
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void MyConstruct4()
+        {
+            Formula f = new Formula("");
         }
 
         /// <summary>
