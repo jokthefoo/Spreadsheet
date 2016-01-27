@@ -10,6 +10,7 @@ using System.Text.RegularExpressions;
 
 namespace Formulas
 {
+
     /// <summary>
     /// Represents formulas written in standard infix notation using standard precedence
     /// rules.  Provides a means to evaluate Formulas.  Formulas can be composed of
@@ -19,6 +20,7 @@ namespace Formulas
     /// </summary>
     public class Formula
     {
+        String thisFormula;
         /// <summary>
         /// Creates a Formula from a string that consists of a standard infix expression composed
         /// from non-negative floating-point numbers (using C#-like syntax for double/int literals), 
@@ -41,37 +43,37 @@ namespace Formulas
         /// </summary>
         public Formula(String formula)
         {
-            if(GetTokens(formula).Count() == 0)
+            if (GetTokens(formula).Count() == 0)
             {
                 throw new FormulaFormatException("No tokens.");
             }
-            
+
             int lpCount = 0;
             int rpCount = 0;
             String previousValue = "";
 
             foreach (String t in GetTokens(formula))
             {
-                if(!IsValid(t))
+                if (!IsValid(t))
                 {
                     throw new FormulaFormatException("Invalid token. : " + t);
                 }
-                if (t=="(")
+                if (t == "(")
                 {
                     lpCount++;
                 }
-                else if(t == ")")
+                else if (t == ")")
                 {
                     rpCount++;
                 }
-                if(rpCount > lpCount)
+                if (rpCount > lpCount)
                 {
                     throw new FormulaFormatException("Too many closing parentheses.");
                 }
                 CompareToPrev(previousValue, t);
             }
 
-            if(lpCount != rpCount)
+            if (lpCount != rpCount)
             {
                 throw new FormulaFormatException("Total number of opening parentheses does not match total number of closing parentheses.");
             }
@@ -84,7 +86,7 @@ namespace Formulas
             {
                 throw new FormulaFormatException("First token must be a number, variable, or opening parentheses.");
             }
-
+            thisFormula = formula;
         }
 
         /// <summary>
@@ -100,7 +102,7 @@ namespace Formulas
                 throw new FormulaFormatException("You cannot have " + prev + " followed by " + current + ".");
             }
             //Check if the previous token was not an operator or opening parentheses, and if it is follwed by something other than an 
-            if((prev != "+" && prev != "-" && prev != "*" && prev != "/" && prev != "(") && (current != "+" && current != "-" && current != "*" && current != "/" && current != ")"))
+            if ((prev != "+" && prev != "-" && prev != "*" && prev != "/" && prev != "(") && (current != "+" && current != "-" && current != "*" && current != "/" && current != ")") && prev != "")
             {
                 throw new FormulaFormatException("You cannot have " + prev + " followed by " + current + ".");
             }
@@ -127,11 +129,11 @@ namespace Formulas
             double y;
             if (Regex.IsMatch(s, pattern, RegexOptions.IgnorePatternWhitespace))
             {
-                if(Regex.IsMatch(s, doublePattern, RegexOptions.IgnorePatternWhitespace)) // Make sure any doubles are positive
+                if (Regex.IsMatch(s, doublePattern, RegexOptions.IgnorePatternWhitespace)) // Make sure any doubles are positive
                 {
-                    if(double.TryParse(s, out y))
+                    if (double.TryParse(s, out y))
                     {
-                        if(y < 0)
+                        if (y < 0)
                         {
                             return false;
                         }
@@ -141,7 +143,7 @@ namespace Formulas
             }
             else if (int.TryParse(s, out x))// Make sure any integers are positive
             {
-                if(x >= 0)
+                if (x >= 0)
                 {
                     return true;
                 }
@@ -164,7 +166,95 @@ namespace Formulas
         /// </summary>
         public double Evaluate(Lookup lookup)
         {
-            return 0;
+            Stack<String> operators = new Stack<String>();
+            Stack<double> values = new Stack<double>();
+            double d;
+            foreach (String t in GetTokens(thisFormula))
+            {
+                //Doubles
+                if (double.TryParse(t, out d))
+                {
+                    if (values.Count != 0)
+                    {
+                        if (operators.Peek() == "*" || operators.Peek() == "/")
+                        {
+                            values.Push(Result(operators.Pop(), values.Pop(), d));
+                        }
+                        else
+                        {
+                            values.Push(d);
+                        }
+                    }else
+                    {
+                        values.Push(d);
+                    }
+                }
+
+                //Variables
+                else if (t == "")
+                {
+
+                }
+
+                //Operators
+                else if (t == "+" || t == "-")
+                {
+                    if (operators.Count != 0)
+                    {
+                        if (operators.Peek() == "+" || operators.Peek() == "-")
+                        {
+                            values.Push(Result(operators.Pop(), values.Pop(), values.Pop()));
+                        }
+                    }
+                    operators.Push(t);
+                }
+                else if (t == "*" || t == "/")
+                {
+                    operators.Push(t);
+                }
+                else if (t == "(")
+                {
+                    operators.Push(t);
+                }
+                else if (t == ")")
+                {
+                    if (operators.Peek() == "+" || operators.Peek() == "-")
+                    {
+                        values.Push(Result(operators.Pop(), values.Pop(), values.Pop()));
+                    }
+                    operators.Pop();
+                    if (operators.Peek() == "*" || operators.Peek() == "/")
+                    {
+                        values.Push(Result(operators.Pop(), values.Pop(), values.Pop()));
+                    }
+                }
+            }
+
+            //Out of tokens
+            if (operators.Count == 0)
+            {
+                return values.Pop();
+            }
+            else
+            {
+                return Result(operators.Pop(), values.Pop(), values.Pop());
+            }
+        }
+
+
+        /// <summary>
+        /// Given an operator and two doubles returns the result of the operation
+        /// </summary>
+        public double Result(String s, double d1, double d2)
+        {
+            switch (s)
+            {
+                case "*": return d1 * d2;
+                case "/": return d1 / d2;
+                case "+": return d1 + d2;
+                case "-": return d1 - d2;
+                default: throw new FormulaFormatException("how did an invalid operator get here");
+            }
         }
 
         /// <summary>
@@ -186,12 +276,12 @@ namespace Formulas
             // Overall pattern
             String pattern = String.Format("({0}) | ({1}) | ({2}) | ({3}) | ({4}) | ({5})",
                                             lpPattern, rpPattern, opPattern, varPattern, doublePattern, spacePattern);
-            
+
             // Enumerate matching tokens that don't consist solely of white space.
             foreach (String s in Regex.Split(formula, pattern, RegexOptions.IgnorePatternWhitespace))
             {
                 if (!Regex.IsMatch(s, @"^\s*$", RegexOptions.Singleline))
-                { 
+                {
                     yield return s;
                 }
             }

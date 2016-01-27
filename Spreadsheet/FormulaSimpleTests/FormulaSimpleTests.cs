@@ -8,15 +8,15 @@ using Formulas;
 
 namespace FormulaTestCases
 {
-    /// <summary>
-    /// These test cases are in no sense comprehensive!  They are intended to show you how
-    /// client code can make use of the Formula class, and to show you how to create your
-    /// own (which we strongly recommend).  To run them, pull down the Test menu and do
-    /// Run > All Tests.
-    /// </summary>
-    [TestClass]
-    public class UnitTests
-    {
+        /// <summary>
+        /// These test cases are in no sense comprehensive!  They are intended to show you how
+        /// client code can make use of the Formula class, and to show you how to create your
+        /// own (which we strongly recommend).  To run them, pull down the Test menu and do
+        /// Run > All Tests.
+        /// </summary>
+        [TestClass]
+        public class UnitTests
+        {
         /// <summary>
         /// This is another syntax error I added
         /// </summary>
