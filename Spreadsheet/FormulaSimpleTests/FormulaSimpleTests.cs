@@ -1,6 +1,9 @@
 ﻿// Written by Joe Zachary for CS 3500, January 2016.
-// Reapired error in Evaluate5.  Added TestMethod Attribute
+// Repaired error in Evaluate5.  Added TestMethod Attribute
 //    for Evaluate4 and Evaluate5 - JLZ January 25, 2016
+
+// Alex Kofford
+// u0358110
 
 using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
