@@ -23,6 +23,17 @@ namespace FormulaTestCases
         /// </summary>
         [TestMethod]
         [ExpectedException(typeof(FormulaFormatException))]
+        public void Construct()
+        {
+            Formula f = new Formula("=(x5 + y) / 2");
+        }
+
+        /// <summary>
+        /// This tests that a syntactically incorrect parameter to Formula results
+        /// in a FormulaFormatException.
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
         public void Construct1()
         {
             Formula f = new Formula("_");

@@ -41,7 +41,97 @@ namespace Formulas
         /// </summary>
         public Formula(String formula)
         {
+            if(GetTokens(formula).Count() == 0)
+            {
+                throw new FormulaFormatException("No tokens.");
+            }
+            
+            int lpCount = 0;
+            int rpCount = 0;
+            String previousValue = "";
+
+            foreach (String t in GetTokens(formula))
+            {
+                if(!IsValid(t))
+                {
+                    throw new FormulaFormatException("Invalid token. : " + t);
+                }
+                if (t=="(")
+                {
+                    lpCount++;
+                }
+                else if(t == ")")
+                {
+                    rpCount++;
+                }
+                if(rpCount > lpCount)
+                {
+                    throw new FormulaFormatException("Too many closing parentheses.");
+                }
+                if(previousValue == "+" || previousValue == "-" || previousValue == "*" || previousValue == "/" || previousValue == "(")
+                {
+
+                }
+                previousValue = t;
+            }
+
+            if(lpCount != rpCount)
+            {
+                throw new FormulaFormatException("Total number of opening parentheses does not match total number of closing parentheses.");
+            }
+
+            if (GetTokens(formula).Last() == "(" || GetTokens(formula).Last() == "+" || GetTokens(formula).Last() == "-" || GetTokens(formula).Last() == "*" || GetTokens(formula).Last() == "/")
+            {
+                throw new FormulaFormatException("Last token must be a number, variable, or closing parentheses.");
+            }
+            if (GetTokens(formula).First() == ")" || GetTokens(formula).First() == "+" || GetTokens(formula).First() == "-" || GetTokens(formula).First() == "*" || GetTokens(formula).First() == "/")
+            {
+                throw new FormulaFormatException("First token must be a number, variable, or opening parentheses.");
+            }
+
         }
+
+        public void CompareToPrev(String prev, String current)
+        {
+            //Check if the previous token was an operator or an opening parentheses, and if it is followed by an operator or a closing parentheses throw exception.
+            if ((prev == "+" || prev == "-" || prev == "*" || prev == "/" || prev == "(") && (current == "+" || current == "-" || current == "*" || current == "/" || current == ")"))
+            {
+                throw new FormulaFormatException("You cannot have " + prev + " followed by " + current + ".");
+            }
+            //Check if the previous token was not an operator or opening parentheses, and if it is follwed by something other than an 
+            if((prev != "+" && prev != "-" && prev != "*" && prev != "/" && prev != "(") && (current != "+" && current != "-" && current != "*" && current != "/" && current != ")"))
+            {
+                throw new FormulaFormatException("You cannot have " + prev + " followed by " + current + ".");
+            }
+        }
+
+        public bool IsValid(String s)
+        {
+            // Patterns for individual tokens
+            String lpPattern = @"\(";
+            String rpPattern = @"\)";
+            String opPattern = @"[\+\-*/]";
+            String varPattern = @"[a-zA-Z][0-9a-zA-Z]*";
+            String doublePattern = @"(?: \d+\.\d* | \d*\.\d+ | \d+ ) (?: e[\+-]?\d+)?";
+
+            // Overall pattern
+            String pattern = String.Format("({0}) | ({1}) | ({2}) | ({3}) | ({4})",
+                                            lpPattern, rpPattern, opPattern, varPattern, doublePattern);
+            int x;
+            if (Regex.IsMatch(s, pattern, RegexOptions.IgnorePatternWhitespace))
+            {
+                return true;
+            }
+            else if (int.TryParse(s, out x))
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
         /// <summary>
         /// Evaluates this Formula, using the Lookup delegate to determine the values of variables.  (The
         /// delegate takes a variable name as a parameter and returns its value (if it has one) or throws
@@ -75,12 +165,12 @@ namespace Formulas
             // Overall pattern
             String pattern = String.Format("({0}) | ({1}) | ({2}) | ({3}) | ({4}) | ({5})",
                                             lpPattern, rpPattern, opPattern, varPattern, doublePattern, spacePattern);
-
+            
             // Enumerate matching tokens that don't consist solely of white space.
             foreach (String s in Regex.Split(formula, pattern, RegexOptions.IgnorePatternWhitespace))
             {
                 if (!Regex.IsMatch(s, @"^\s*$", RegexOptions.Singleline))
-                {
+                { 
                     yield return s;
                 }
             }
