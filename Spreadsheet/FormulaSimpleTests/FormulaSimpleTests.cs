@@ -8,15 +8,15 @@ using Formulas;
 
 namespace FormulaTestCases
 {
-        /// <summary>
-        /// These test cases are in no sense comprehensive!  They are intended to show you how
-        /// client code can make use of the Formula class, and to show you how to create your
-        /// own (which we strongly recommend).  To run them, pull down the Test menu and do
-        /// Run > All Tests.
-        /// </summary>
-        [TestClass]
-        public class UnitTests
-        {
+    /// <summary>
+    /// These test cases are in no sense comprehensive!  They are intended to show you how
+    /// client code can make use of the Formula class, and to show you how to create your
+    /// own (which we strongly recommend).  To run them, pull down the Test menu and do
+    /// Run > All Tests.
+    /// </summary>
+    [TestClass]
+    public class UnitTests
+    {
         /// <summary>
         /// This is another syntax error I added
         /// </summary>
@@ -24,7 +24,7 @@ namespace FormulaTestCases
         [ExpectedException(typeof(FormulaFormatException))]
         public void MyConstruct1()
         {
-            Formula f = new Formula("(2.525 + y) / 2");
+            Formula f = new Formula("2(2.525 + y) / 2");
         }
 
         /// <summary>
@@ -153,7 +153,7 @@ namespace FormulaTestCases
         /// This uses one of each kind of token.
         /// </summary>
         [TestMethod]
-        public void Evaluate5 ()
+        public void Evaluate5()
         {
             Formula f = new Formula("(x + y) * (z / x) * 1.0");
             Assert.AreEqual(f.Evaluate(Lookup4), 20.0, 1e-6);

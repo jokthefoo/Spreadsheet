@@ -71,6 +71,7 @@ namespace Formulas
                     throw new FormulaFormatException("Too many closing parentheses.");
                 }
                 CompareToPrev(previousValue, t);
+                previousValue = t;
             }
 
             if (lpCount != rpCount)
@@ -184,16 +185,11 @@ namespace Formulas
                         {
                             values.Push(d);
                         }
-                    }else
+                    }
+                    else
                     {
                         values.Push(d);
                     }
-                }
-
-                //Variables
-                else if (t == "")
-                {
-
                 }
 
                 //Operators
@@ -223,9 +219,39 @@ namespace Formulas
                         values.Push(Result(operators.Pop(), values.Pop(), values.Pop()));
                     }
                     operators.Pop();
-                    if (operators.Peek() == "*" || operators.Peek() == "/")
+                    if (operators.Count != 0)
                     {
-                        values.Push(Result(operators.Pop(), values.Pop(), values.Pop()));
+                        if (operators.Peek() == "*" || operators.Peek() == "/")
+                        {
+                            values.Push(Result(operators.Pop(), values.Pop(), values.Pop()));
+                        }
+                    }
+                }
+
+                //If t hasn't been anything else it must be a variable
+                else
+                {
+                    try
+                    {
+                        d = lookup(t);
+                    }catch(UndefinedVariableException e)
+                    {
+                        throw new FormulaEvaluationException("No variables have values.");
+                    }
+                    if (values.Count != 0)
+                    {
+                        if (operators.Peek() == "*" || operators.Peek() == "/")
+                        {
+                            values.Push(Result(operators.Pop(), values.Pop(), d));
+                        }
+                        else
+                        {
+                            values.Push(d);
+                        }
+                    }
+                    else
+                    {
+                        values.Push(d);
                     }
                 }
             }
@@ -253,7 +279,7 @@ namespace Formulas
                 case "/": return d1 / d2;
                 case "+": return d1 + d2;
                 case "-": return d1 - d2;
-                default: throw new FormulaFormatException("how did an invalid operator get here");
+                default: throw new FormulaFormatException("Invalid operator");
             }
         }
 
