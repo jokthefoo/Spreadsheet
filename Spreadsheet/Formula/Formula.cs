@@ -20,7 +20,7 @@ namespace Formulas
     /// </summary>
     public class Formula
     {
-        String thisFormula;
+        private String thisFormula;
         /// <summary>
         /// Creates a Formula from a string that consists of a standard infix expression composed
         /// from non-negative floating-point numbers (using C#-like syntax for double/int literals), 
@@ -228,13 +228,13 @@ namespace Formulas
                     }
                 }
 
-                //If t hasn't been anything else it must be a variable
+                //If it hasn't been anything else it must be a variable
                 else
                 {
                     try
                     {
                         d = lookup(t);
-                    }catch(UndefinedVariableException e)
+                    }catch(UndefinedVariableException)
                     {
                         throw new FormulaEvaluationException("No variables have values.");
                     }
@@ -276,7 +276,13 @@ namespace Formulas
             switch (s)
             {
                 case "*": return d1 * d2;
-                case "/": return d1 / d2;
+                case "/":
+                    //Check to make sure we aren't dividing by zero
+                    if(d2 == 0)
+                    {
+                        throw new FormulaEvaluationException("Can't divide by 0.");
+                    }
+                    return d1 / d2;
                 case "+": return d1 + d2;
                 case "-": return d1 - d2;
                 default: throw new FormulaFormatException("Invalid operator");

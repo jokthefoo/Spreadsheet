@@ -160,6 +160,27 @@ namespace FormulaTestCases
         }
 
         /// <summary>
+        /// The Formula consists of a single variable (x5)
+        /// </summary>
+        [TestMethod]
+        public void MyEvaluate1()
+        {
+            Formula f = new Formula("x5");
+            Assert.AreEqual(f.Evaluate(Lookup4), 4.0, 1e-6);
+        }
+
+        /// <summary>
+        /// The Formula consists of a single variable (x5)
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(FormulaEvaluationException))]
+        public void MyEvaluate2()
+        {
+            Formula f = new Formula("10 / 0");
+            f.Evaluate(v => 0);
+        }
+
+        /// <summary>
         /// A Lookup method that maps x to 4.0, y to 6.0, and z to 8.0.
         /// All other variables result in an UndefinedVariableException.
         /// </summary>
