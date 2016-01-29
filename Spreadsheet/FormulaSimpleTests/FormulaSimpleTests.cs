@@ -165,7 +165,7 @@ namespace FormulaTestCases
         [TestMethod]
         public void MyEvaluate1()
         {
-            Formula f = new Formula("x5");
+            Formula f = new Formula("x");
             Assert.AreEqual(f.Evaluate(Lookup4), 4.0, 1e-6);
         }
 
