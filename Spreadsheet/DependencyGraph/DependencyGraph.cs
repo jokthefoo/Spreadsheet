@@ -276,9 +276,14 @@ namespace Dependencies
         /// </summary>
         public void ReplaceDependees(string t, IEnumerable<string> newDependees)
         {
+            /*
             foreach (KeyValuePair<string, Dependencies> d in dependencies)
             {
                 RemoveDependency(d.Key, t);
+            }*/
+            foreach(string s in dependencies.Keys)
+            {
+                RemoveDependency(s, t);
             }
             foreach (string s in newDependees)
             {
