@@ -104,7 +104,7 @@ namespace Formulas
             {
                 throw new FormulaFormatException("You cannot have " + prev + " followed by " + current + ".");
             }
-            //Check if the previous token was not an operator or opening parentheses, and if it is follwed by something other than an 
+            //Check if the previous token was not an operator or opening parentheses, and if it is follwed by something other than an operator throw exception
             if ((prev != "+" && prev != "-" && prev != "*" && prev != "/" && prev != "(") && (current != "+" && current != "-" && current != "*" && current != "/" && current != ")") && prev != "")
             {
                 throw new FormulaFormatException("You cannot have " + prev + " followed by " + current + ".");
@@ -181,7 +181,7 @@ namespace Formulas
                     {
                         if (operators.Peek() == "*" || operators.Peek() == "/")
                         {
-                            values.Push(Result(operators.Pop(), values.Pop(), d));
+                            values.Push(Result(operators.Pop(), d, values.Pop()));
                         }
                         else
                         {
@@ -244,7 +244,7 @@ namespace Formulas
                     {
                         if (operators.Peek() == "*" || operators.Peek() == "/")
                         {
-                            values.Push(Result(operators.Pop(), values.Pop(), d));
+                            values.Push(Result(operators.Pop(), d, values.Pop()));
                         }
                         else
                         {
@@ -273,7 +273,7 @@ namespace Formulas
         /// <summary>
         /// Given an operator and two doubles returns the result of the operation
         /// </summary>
-        public double Result(String s, double d1, double d2)
+        public double Result(String s, double d2, double d1)
         {
             switch (s)
             {
