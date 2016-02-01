@@ -276,12 +276,9 @@ namespace Dependencies
         /// </summary>
         public void ReplaceDependees(string t, IEnumerable<string> newDependees)
         {
-            /*
-            foreach (KeyValuePair<string, Dependencies> d in dependencies)
-            {
-                RemoveDependency(d.Key, t);
-            }*/
-            foreach(string s in dependencies.Keys)
+            List<string> keys = new List<string>(dependencies.Keys);
+            //Convert the collection of keys to a list before running the foreach otherise you get an error if something is removed from the collection
+            foreach(string s in keys)
             {
                 RemoveDependency(s, t);
             }
