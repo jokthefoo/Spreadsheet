@@ -2,6 +2,8 @@
 // Revised by Joe Zachary, January 2016
 // JLZ Repaired pair of mistakes, January 23, 2016
 
+// Alex Kofford
+// u0358110
 using System;
 using System.Collections.Generic;
 using System.Linq;
