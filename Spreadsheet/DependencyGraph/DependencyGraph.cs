@@ -1,6 +1,9 @@
 ﻿// Skeleton implementation written by Joe Zachary for CS 3500, January 2015.
 // Revised for CS 3500 by Joe Zachary, January 29, 2016
 
+// Alex Kofford
+// u0358110
+
 using System;
 using System.Collections.Generic;
 
@@ -49,11 +52,15 @@ namespace Dependencies
     /// </summary>
     public class DependencyGraph
     {
+        private Dictionary<string,Dependencies> dependencies;
+        private int _size;
         /// <summary>
         /// Creates a DependencyGraph containing no dependencies.
         /// </summary>
         public DependencyGraph()
         {
+            dependencies = new Dictionary<string, Dependencies>();
+            _size = 0;
         }
 
         /// <summary>
@@ -61,7 +68,7 @@ namespace Dependencies
         /// </summary>
         public int Size
         {
-            get { return 0; }
+            get{ return _size; }
         }
 
         /// <summary>
@@ -69,6 +76,21 @@ namespace Dependencies
         /// </summary>
         public bool HasDependents(string s)
         {
+            Dependencies d;
+            if (s != null)
+            {
+                if (dependencies.TryGetValue(s, out d))
+                {
+                    if (d.dependents.Count == 0)
+                    {
+                        return false;
+                    }
+                    else
+                    {
+                        return true;
+                    }
+                }
+            }
             return false;
         }
 
@@ -77,6 +99,21 @@ namespace Dependencies
         /// </summary>
         public bool HasDependees(string s)
         {
+            Dependencies d;
+            if (s != null)
+            {
+                if (dependencies.TryGetValue(s, out d))
+                {
+                    if (d.dependees.Count == 0)
+                    {
+                        return false;
+                    }
+                    else
+                    {
+                        return true;
+                    }
+                }
+            }
             return false;
         }
 
@@ -85,7 +122,17 @@ namespace Dependencies
         /// </summary>
         public IEnumerable<string> GetDependents(string s)
         {
-            return null;
+            Dependencies d;
+            if (s != null)
+            {
+                if (dependencies.TryGetValue(s, out d))
+                {
+                    foreach (string z in d.dependents)
+                    {
+                        yield return z;
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -93,7 +140,17 @@ namespace Dependencies
         /// </summary>
         public IEnumerable<string> GetDependees(string s)
         {
-            return null;
+            Dependencies d;
+            if (s != null)
+            {
+                if (dependencies.TryGetValue(s, out d))
+                {
+                    foreach (string z in d.dependees)
+                    {
+                        yield return z;
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -103,6 +160,56 @@ namespace Dependencies
         /// </summary>
         public void AddDependency(string s, string t)
         {
+            Dependencies d = new Dependencies();
+            if (s != null && t != null)
+            {
+                if (dependencies.Count != 0)
+                {
+                    if (dependencies.TryGetValue(s, out d))
+                    {
+                        if (!d.dependents.Contains(t))
+                        {
+                            d.dependents.Add(t);
+                            _size++;
+                        }
+                    }
+                    else
+                    {
+                        d = new Dependencies();
+                        dependencies.Add(s, d);
+                        dependencies.TryGetValue(s, out d);
+                        d.dependents.Add(t);
+                        _size++;
+                    }
+                    if (dependencies.TryGetValue(t, out d))
+                    {
+                        if (!d.dependees.Contains(s))
+                        {
+                            d.dependees.Add(s);
+                        }
+                    }
+                    else
+                    {
+                        d = new Dependencies();
+                        dependencies.Add(t, d);
+                        dependencies.TryGetValue(t, out d);
+                        d.dependees.Add(s);
+                    }
+                }
+                else
+                {
+                    d = new Dependencies();
+                    dependencies.Add(s, d);
+                    dependencies.TryGetValue(s, out d);
+                    d.dependents.Add(t);
+
+                    d = new Dependencies();
+                    dependencies.Add(t, d);
+                    dependencies.TryGetValue(t, out d);
+                    d.dependees.Add(s);
+                    _size++;
+                }
+            }
         }
 
         /// <summary>
@@ -112,6 +219,27 @@ namespace Dependencies
         /// </summary>
         public void RemoveDependency(string s, string t)
         {
+            Dependencies d;
+            if (s != null && t != null)
+            {
+                if (dependencies.TryGetValue(s, out d))
+                {
+                    d.dependents.Remove(t);
+                    _size--;
+                    if (d.dependees.Count == 0 && d.dependents.Count == 0)
+                    {
+                        dependencies.Remove(s);
+                    }
+                }
+                if (dependencies.TryGetValue(t, out d))
+                {
+                    d.dependees.Remove(s);
+                    if (d.dependees.Count == 0 && d.dependents.Count == 0)
+                    {
+                        dependencies.Remove(t);
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -121,6 +249,24 @@ namespace Dependencies
         /// </summary>
         public void ReplaceDependents(string s, IEnumerable<string> newDependents)
         {
+            Dependencies d = new Dependencies();
+            if (s != null)
+            {
+                if (dependencies.TryGetValue(s, out d))
+                {
+                    d.dependents.Clear();
+                    if (newDependents != null)
+                    {
+                        foreach (string t in newDependents)
+                        {
+                            if (t != null)
+                            {
+                                d.dependents.Add(t);
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -130,6 +276,27 @@ namespace Dependencies
         /// </summary>
         public void ReplaceDependees(string t, IEnumerable<string> newDependees)
         {
+            foreach (KeyValuePair<string, Dependencies> d in dependencies)
+            {
+                RemoveDependency(d.Key, t);
+            }
+            foreach (string s in newDependees)
+            {
+                AddDependency(s, t);
+            }
+            
+        }
+    }
+
+    public class Dependencies
+    {
+        public List<string> dependents { get; set; }
+        public List<string> dependees { get; set; }
+
+        public Dependencies()
+        {
+            dependents = new List<string>();
+            dependees = new List<string>();
         }
     }
 }
