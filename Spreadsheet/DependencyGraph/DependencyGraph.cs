@@ -176,9 +176,8 @@ namespace Dependencies
                     else
                     {
                         d = new Dependencies();
-                        dependencies.Add(s, d);
-                        dependencies.TryGetValue(s, out d);
                         d.dependents.Add(t);
+                        dependencies.Add(s, d);
                         _size++;
                     }
                     if (dependencies.TryGetValue(t, out d))
@@ -191,22 +190,19 @@ namespace Dependencies
                     else
                     {
                         d = new Dependencies();
-                        dependencies.Add(t, d);
-                        dependencies.TryGetValue(t, out d);
                         d.dependees.Add(s);
+                        dependencies.Add(t, d);
                     }
                 }
                 else
                 {
                     d = new Dependencies();
-                    dependencies.Add(s, d);
-                    dependencies.TryGetValue(s, out d);
                     d.dependents.Add(t);
+                    dependencies.Add(s, d);
 
                     d = new Dependencies();
-                    dependencies.Add(t, d);
-                    dependencies.TryGetValue(t, out d);
                     d.dependees.Add(s);
+                    dependencies.Add(t, d);
                     _size++;
                 }
             }
