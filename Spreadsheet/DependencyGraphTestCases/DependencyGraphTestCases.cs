@@ -425,42 +425,24 @@ namespace DependencyGraphTestCases
         /// Test of replace dependees
         /// </summary>
         [TestMethod]
-        public void TestMethod100()
+        public void TestMethod26()
         {
             DependencyGraph g = new DependencyGraph();
-            string s, t ="";
-            for(int i = 0; i < 25000; i++)
-            {
-                s = ""+i;
-                for(int z = 0; z < 4; z++)
-                {
-                    switch (z)
-                    {
-                        case 0:
-                            t = "a";
-                            break;
-                        case 1:
-                            t = "b";
-                            break;
-                        case 2:
-                            t = "c";
-                            break;
-                        case 3:
-                            t = "d";
-                            break;
-                    }
-                   g.AddDependency(s, t);
-                }
-            }
+            g.AddDependency("1", "2");
+            g.AddDependency("2", "2");
+            g.AddDependency("3", "2");
+
+            string[] test = { "a", "b", "c", "d" };
+
+            g.ReplaceDependees("2", test);
+
             string ans = "";
 
-            foreach (string b in g.GetDependents("5123"))
+            foreach (string s in g.GetDependents("1"))
             {
-                ans = ans + b;
+                ans = ans + s;
             }
-            Assert.IsTrue(ans == "abcd");
-
-            //Assert.AreEqual(100000, g.Size, .0001);
+            Assert.IsTrue(ans == "");
         }
     }
 }
