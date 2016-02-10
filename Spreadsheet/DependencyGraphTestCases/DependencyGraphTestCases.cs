@@ -189,6 +189,7 @@ namespace DependencyGraphTestCases
         /// Test of get dependees with null
         /// </summary>
         [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
         public void TestMethod14()
         {
             DependencyGraph g = new DependencyGraph();
@@ -204,6 +205,7 @@ namespace DependencyGraphTestCases
         /// Test of get dependents with null
         /// </summary>
         [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
         public void TestMethod15()
         {
             DependencyGraph g = new DependencyGraph();
@@ -219,6 +221,7 @@ namespace DependencyGraphTestCases
         /// Test of add dependency with null
         /// </summary>
         [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
         public void TestMethod16()
         {
             DependencyGraph g = new DependencyGraph();
@@ -229,6 +232,7 @@ namespace DependencyGraphTestCases
         /// Test of add dependency with null
         /// </summary>
         [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
         public void TestMethod16a()
         {
             DependencyGraph g = new DependencyGraph();
@@ -239,6 +243,7 @@ namespace DependencyGraphTestCases
         /// Test of remove dependency with null
         /// </summary>
         [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
         public void TestMethod17()
         {
             DependencyGraph g = new DependencyGraph();
@@ -250,6 +255,7 @@ namespace DependencyGraphTestCases
         /// Test of remove dependency with null
         /// </summary>
         [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
         public void TestMethod17a()
         {
             DependencyGraph g = new DependencyGraph();
@@ -261,6 +267,7 @@ namespace DependencyGraphTestCases
         /// Test of has dependees with null
         /// </summary>
         [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
         public void TestMethod18()
         {
             DependencyGraph g = new DependencyGraph();
@@ -272,6 +279,7 @@ namespace DependencyGraphTestCases
         /// Test of has dependents with null
         /// </summary>
         [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
         public void TestMethod19()
         {
             DependencyGraph g = new DependencyGraph();
@@ -307,6 +315,7 @@ namespace DependencyGraphTestCases
         /// Test of replace dependents with null
         /// </summary>
         [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
         public void TestMethod21()
         {
             DependencyGraph g = new DependencyGraph();
@@ -317,13 +326,6 @@ namespace DependencyGraphTestCases
             string[] test = { "a", "b", "c", "d" };
 
             g.ReplaceDependents(null, test);
-
-            string ans = "";
-
-            foreach (string s in g.GetDependents("2"))
-            {
-                ans = ans + s;
-            }
         }
 
         /// <summary>
@@ -340,13 +342,39 @@ namespace DependencyGraphTestCases
             string[] test = { "a", "b", "c", "d" };
 
             g.ReplaceDependents("2", null);
+        }
 
-            string ans = "";
+        /// <summary>
+        /// Test of replace dependees with null
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
+        public void TestMethod21a()
+        {
+            DependencyGraph g = new DependencyGraph();
+            g.AddDependency("2", "1");
+            g.AddDependency("2", "2");
+            g.AddDependency("2", "3");
 
-            foreach (string s in g.GetDependents("2"))
-            {
-                ans = ans + s;
-            }
+            string[] test = { "a", "b", "c", "d" };
+
+            g.ReplaceDependees(null, test);
+        }
+
+        /// <summary>
+        /// Test of replace dependees with null
+        /// </summary>
+        [TestMethod]
+        public void TestMethod22a()
+        {
+            DependencyGraph g = new DependencyGraph();
+            g.AddDependency("2", "1");
+            g.AddDependency("2", "2");
+            g.AddDependency("2", "3");
+
+            string[] test = { "a", "b", "c", "d" };
+
+            g.ReplaceDependees("2", null);
         }
 
         /// <summary>
@@ -443,6 +471,46 @@ namespace DependencyGraphTestCases
                 ans = ans + s;
             }
             Assert.IsTrue(ans == "");
+        }
+
+        /// <summary>
+        /// Test of constructor when passed null
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
+        public void TestMethod27()
+        {
+            DependencyGraph z = new DependencyGraph(null);
+        }
+
+        /// <summary>
+        /// Test of constructor when passed dependency graph
+        /// </summary>
+        [TestMethod]
+        public void TestMethod28()
+        {
+            DependencyGraph g = new DependencyGraph();
+            g.AddDependency("1", "1");
+            g.AddDependency("1", "2");
+            g.AddDependency("1", "3");
+
+            DependencyGraph z = new DependencyGraph(g);
+            z.GetDependents("1");
+            g.RemoveDependency("1","3");
+
+            string ans = "";
+            foreach (string s in g.GetDependents("1"))
+            {
+                ans = ans + s;
+            }
+            Assert.IsTrue(ans == "12");
+
+            ans = "";
+            foreach (string s in z.GetDependents("1"))
+            {
+                ans = ans + s;
+            }
+            Assert.IsTrue(ans == "123");
         }
     }
 }

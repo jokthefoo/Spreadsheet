@@ -65,7 +65,7 @@ namespace Dependencies
         /// <summary>
         /// Contains the number of ordered pairs in a dependency graph. Cannot be negative or null, will be 0 if there are no pairs.
         /// </summary>
-        private int _size;
+        private int size;
 
         /// <summary>
         /// Creates a DependencyGraph containing no dependencies.
@@ -75,7 +75,39 @@ namespace Dependencies
             depents = new Dictionary<string, HashSet<string>>();
             depees = new Dictionary<string, HashSet<string>>();
 
-            _size = 0;
+            size = 0;
+        }
+
+        /// <summary>
+        /// Creates a DependencyGraph that is a copy of the passed dependency graph. Requires d != null else throws ArgumentNullException.
+        /// </summary>
+        public DependencyGraph(DependencyGraph d)
+        {
+            if(d != null)
+            {
+                depees = new Dictionary<string, HashSet<string>>();
+                depents = new Dictionary<string, HashSet<string>>();
+
+                foreach(KeyValuePair<string, HashSet<string>> kvp in d.depees)
+                {
+                    depees.Add(kvp.Key, new HashSet<string>(kvp.Value));
+                }
+                foreach (KeyValuePair<string, HashSet<string>> kvp in d.depents)
+                {
+                    depents.Add(kvp.Key, new HashSet<string>(kvp.Value));
+                }
+
+                // Commented out code didn't work
+                // I think it was because it was just linking the hashsets
+                //depents = new Dictionary<string, HashSet<string>>(d.depents);
+                //depees = new Dictionary<string, HashSet<string>>(d.depees);
+
+                size = d.Size;
+            }
+            else
+            {
+                throw new ArgumentNullException("Cannot be passed null parameter");
+            }
         }
 
         /// <summary>
@@ -83,11 +115,11 @@ namespace Dependencies
         /// </summary>
         public int Size
         {
-            get{ return _size; }
+            get{ return size; }
         }
 
         /// <summary>
-        /// Reports whether dependents(s) is non-empty.  Requires s != null.
+        /// Reports whether dependents(s) is non-empty.  Requires s != null else throws ArgumentNullException.
         /// </summary>
         public bool HasDependents(string s)
         {
@@ -98,11 +130,15 @@ namespace Dependencies
                     return true;
                 }
             }
+            else
+            {
+                throw new ArgumentNullException("Cannot be passed null parameter");
+            }
             return false;
         }
 
         /// <summary>
-        /// Reports whether dependees(s) is non-empty.  Requires s != null.
+        /// Reports whether dependees(s) is non-empty.  Requires s != null else throws ArgumentNullException.
         /// </summary>
         public bool HasDependees(string s)
         {
@@ -113,11 +149,15 @@ namespace Dependencies
                     return true;
                 }
             }
+            else
+            {
+                throw new ArgumentNullException("Cannot be passed null parameter");
+            }
             return false;
         }
 
         /// <summary>
-        /// Enumerates dependents(s).  Requires s != null.
+        /// Enumerates dependents(s).  Requires s != null else throws ArgumentNullException.
         /// </summary>
         public IEnumerable<string> GetDependents(string s)
         {
@@ -132,10 +172,14 @@ namespace Dependencies
                     }
                 }
             }
+            else
+            {
+                throw new ArgumentNullException("Cannot be passed null parameter");
+            }
         }
 
         /// <summary>
-        /// Enumerates dependees(s).  Requires s != null.
+        /// Enumerates dependees(s).  Requires s != null else throws ArgumentNullException.
         /// </summary>
         public IEnumerable<string> GetDependees(string s)
         {
@@ -150,12 +194,16 @@ namespace Dependencies
                     }
                 }
             }
+            else
+            {
+                throw new ArgumentNullException("Cannot be passed null parameter");
+            }
         }
 
         /// <summary>
         /// Adds the dependency (s,t) to this DependencyGraph.
         /// This has no effect if (s,t) already belongs to this DependencyGraph.
-        /// Requires s != null and t != null.
+        /// Requires s != null and t != null else throws ArgumentNullException.
         /// </summary>
         public void AddDependency(string s, string t)
         {
@@ -166,7 +214,7 @@ namespace Dependencies
                 {
                     d.Add(t);
                     depents.Add(s, d);
-                    _size++;
+                    size++;
                     d = new HashSet<string>();
                     if(!depees.ContainsKey(t))
                     {
@@ -188,7 +236,7 @@ namespace Dependencies
                         if (!d.Contains(t))
                         {
                             d.Add(t);
-                            _size++;
+                            size++;
                             if (!depees.ContainsKey(t))
                             {
                                 d = new HashSet<string>();
@@ -206,12 +254,16 @@ namespace Dependencies
                     }
                 }
             }
+            else
+            {
+                throw new ArgumentNullException("Cannot be passed null parameter");
+            }
         }
 
         /// <summary>
         /// Removes the dependency (s,t) from this DependencyGraph.
         /// Does nothing if (s,t) doesn't belong to this DependencyGraph.
-        /// Requires s != null and t != null.
+        /// Requires s != null and t != null else throws ArgumentNullException.
         /// </summary>
         public void RemoveDependency(string s, string t)
         {
@@ -220,7 +272,7 @@ namespace Dependencies
             {
                 if(depents.ContainsKey(s))
                 {
-                    _size--;
+                    size--;
                     if (depents.TryGetValue(s, out d))
                     {
                         d.Remove(t);
@@ -239,12 +291,16 @@ namespace Dependencies
                     }
                 }
             }
+            else
+            {
+                throw new ArgumentNullException("Cannot be passed null parameter");
+            }
         }
 
         /// <summary>
         /// Removes all existing dependencies of the form (s,r).  Then, for each
         /// t in newDependents, adds the dependency (s,t).
-        /// Requires s != null and t != null.
+        /// Requires s != null and t != null else throws ArgumentNullException.
         /// </summary>
         public void ReplaceDependents(string s, IEnumerable<string> newDependents)
         {
@@ -270,12 +326,16 @@ namespace Dependencies
                     }
                 }
             }
+            else
+            {
+                throw new ArgumentNullException("Cannot be passed null parameter");
+            }
         }
 
         /// <summary>
         /// Removes all existing dependencies of the form (r,t).  Then, for each 
         /// s in newDependees, adds the dependency (s,t).
-        /// Requires s != null and t != null.
+        /// Requires s != null and t != null else throws ArgumentNullException.
         /// </summary>
         public void ReplaceDependees(string t, IEnumerable<string> newDependees)
         {
@@ -300,6 +360,10 @@ namespace Dependencies
                         }
                     }
                 }
+            }
+            else
+            {
+                throw new ArgumentNullException("Cannot be passed null parameter");
             }
         }
     }

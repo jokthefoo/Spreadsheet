@@ -6,6 +6,8 @@
 using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Formulas;
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 namespace FormulaTestCases
 {
@@ -77,6 +79,36 @@ namespace FormulaTestCases
         public void Construct1()
         {
             Formula f = new Formula("_");
+        }
+
+        /// <summary>
+        /// This tests that a no argument constructor works as if you did new formula("0");
+        /// </summary>
+        [TestMethod]
+        public void Construct0()
+        {
+            Formula f = new Formula();
+            Assert.AreEqual(f.Evaluate(v => 0), 0, 1e-6);
+        }
+
+        /// <summary>
+        /// This tests that a no argument constructor works as if you did new formula("0");
+        /// </summary>
+        [TestMethod]
+        public void Construct01()
+        {
+            Formula f = new Formula(null);
+            Assert.AreEqual(f.Evaluate(v => 0), 0, 1e-6);
+        }
+
+        /// <summary>
+        /// This tests negative double
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void Construct4()
+        {
+            Formula f = new Formula("-2.0+3x");
         }
 
         /// <summary>
@@ -171,6 +203,17 @@ namespace FormulaTestCases
         }
 
         /// <summary>
+        /// The Formula consists of a variable that doesn't exsist
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(FormulaEvaluationException))]
+        public void MyEvaluate3()
+        {
+            Formula f = new Formula("x+y+z+f");
+            Assert.AreEqual(f.Evaluate(Lookup4), 4.0, 1e-6);
+        }
+
+        /// <summary>
         /// The Formula consists of a single variable (x5)
         /// </summary>
         [TestMethod]
@@ -196,6 +239,111 @@ namespace FormulaTestCases
                 case "z": return 8.0;
                 default: throw new UndefinedVariableException(v);
             }
+        }
+
+        /// <summary>
+        /// Tests ToString
+        /// </summary>
+        [TestMethod]
+        public void TestToString()
+        {
+            Formula f = new Formula("2+3");
+            Assert.AreEqual("2+3", f.ToString());
+        }
+
+        /// <summary>
+        /// Tests get variables
+        /// </summary>
+        [TestMethod]
+        public void TestGetVariables()
+        {
+            Formula f = new Formula("c2+x3");
+            String z = "";
+            foreach(string s in f.GetVariables())
+            {
+                z = z + s;
+            }
+            Assert.AreEqual("c2x3", z);
+        }
+
+        /// <summary>
+        /// This tests the 3 argument constructor
+        /// </summary>
+        [TestMethod]
+        public void NormalizeConstruct0()
+        {
+            Formula f = new Formula("x3+t5",N,V);
+        }
+
+        /// <summary>
+        /// Normalizer used for testing, Converts letters to uppercase
+        /// </summary>
+        public string N(string s)
+        {
+            return s.ToUpper();
+        }
+
+        /// <summary>
+        /// Validator used for testing, Variables are only valid if they are a letter followed by a number
+        /// </summary>
+        public bool V(string s)
+        {
+            String varPattern = @"[a-zA-Z][0-9]";
+            if (s.Length == 2)
+            {
+                if (Regex.IsMatch(s, varPattern))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// This tests the 3 argument constructor when the Normalizer makes a variable invalid
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void NormalizeConstruct1()
+        {
+            Formula f = new Formula("x3+t5", N1, V);
+        }
+
+        /// <summary>
+        /// Normalizer used for testing, adds a number at the start of the variable to make it invalid
+        /// </summary>
+        public string N1(string s)
+        {
+            s = "&^%&";
+            return s;
+        }
+
+
+        /// <summary>
+        /// This tests the 3 argument constructor when the Normalizer makes a variable invalid according to the Validator
+        /// The normalizer makes the Variables upper case but the validator requires lower case variables.
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(FormulaFormatException))]
+        public void NormalizeConstruct2()
+        {
+            Formula f = new Formula("x3+t5", N, V1);
+        }
+
+        /// <summary>
+        /// Validator used for testing, Variables are only valid if they are a lower case letter followed by a number
+        /// </summary>
+        public bool V1(string s)
+        {
+            String varPattern = @"[a-z][0-9]";
+            if (s.Length == 2)
+            {
+                if (Regex.IsMatch(s, varPattern))
+                {
+                    return true;
+                }
+            }
+            return false;
         }
     }
 }

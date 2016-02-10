@@ -20,9 +20,9 @@ namespace Formulas
     /// the four binary operator symbols +, -, *, and /.  (The unary operators + and -
     /// are not allowed.)
     /// </summary>
-    public class Formula
+    public struct Formula
     {
-        private String thisFormula;
+        private List<string> thisFormula;
         /// <summary>
         /// Creates a Formula from a string that consists of a standard infix expression composed
         /// from non-negative floating-point numbers (using C#-like syntax for double/int literals), 
@@ -45,6 +45,7 @@ namespace Formulas
         /// </summary>
         public Formula(String formula)
         {
+            thisFormula = new List<string>();
             if (GetTokens(formula).Count() == 0)
             {
                 throw new FormulaFormatException("No tokens.");
@@ -56,6 +57,7 @@ namespace Formulas
 
             foreach (String t in GetTokens(formula))
             {
+                thisFormula.Add(t);
                 if (!IsValid(t))
                 {
                     throw new FormulaFormatException("Invalid token. : " + t);
@@ -89,7 +91,65 @@ namespace Formulas
             {
                 throw new FormulaFormatException("First token must be a number, variable, or opening parentheses.");
             }
-            thisFormula = formula;
+        }
+
+
+        /// <summary>
+        /// Creates a formula like the single argument constructor except you can pass a Normalizer and a Validator
+        /// A Normalizer is supposed to convert variables into a canonical form and a Validator is to impose extra
+        /// restrictions on the validity of a variable.
+        /// </summary>
+        public Formula(String formula, Normalizer n, Validator v)
+        {
+            this = new Formula(formula);
+            int index;
+            foreach(string s in GetVariables())
+            {
+                index = thisFormula.IndexOf(s);
+                if (!IsValid(n(s)))
+                {
+                    throw new FormulaFormatException("The normalized form of the variable: " + s + " is invalid. Normalized form + " + n(s));
+                }
+                else if (!v(n(s)))
+                {
+                    throw new FormulaFormatException("The normalized variable: " + n(s) + " Is invalid according to the Validator.");
+                }
+                else
+                {
+                    thisFormula[index] = n(s);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Returns each distinct variable in normalized form in the Formula
+        /// (What is normalized form?)
+        /// </summary>
+        public ISet<string> GetVariables()
+        {
+            String varPattern = @"[a-zA-Z][0-9a-zA-Z]*";
+            HashSet<string> s = new HashSet<string>();
+            foreach (String t in thisFormula)
+            {
+                if(Regex.IsMatch(t, varPattern, RegexOptions.IgnorePatternWhitespace))
+                {
+                    s.Add(t);
+                }
+            }
+            return s;
+        }
+
+        /// <summary>
+        /// Returns the Formula as a string
+        /// </summary>
+        public override String ToString()
+        {
+            String formula = "";
+            foreach(string s in thisFormula)
+            {
+                formula = formula + s;
+            }
+            return formula;
         }
 
         /// <summary>
@@ -128,29 +188,9 @@ namespace Formulas
             // Overall pattern
             String pattern = String.Format("({0}) | ({1}) | ({2}) | ({3}) | ({4})",
                                             lpPattern, rpPattern, opPattern, varPattern, doublePattern);
-            int x;
-            double y;
             if (Regex.IsMatch(s, pattern, RegexOptions.IgnorePatternWhitespace))
             {
-                if (Regex.IsMatch(s, doublePattern, RegexOptions.IgnorePatternWhitespace)) // Make sure any doubles are positive
-                {
-                    if (double.TryParse(s, out y))
-                    {
-                        if (y < 0)
-                        {
-                            return false;
-                        }
-                    }
-                }
                 return true;
-            }
-            else if (int.TryParse(s, out x))// Make sure any integers are positive
-            {
-                if (x >= 0)
-                {
-                    return true;
-                }
-                return false;
             }
             else
             {
@@ -169,10 +209,15 @@ namespace Formulas
         /// </summary>
         public double Evaluate(Lookup lookup)
         {
+            if(thisFormula == null)
+            {
+                thisFormula = new List<string>();
+                thisFormula.Add("0");
+            }
             Stack<String> operators = new Stack<String>();
             Stack<double> values = new Stack<double>();
             double d;
-            foreach (String t in GetTokens(thisFormula))
+            foreach (String t in thisFormula)
             {
                 //Doubles
                 if (double.TryParse(t, out d))
@@ -238,7 +283,7 @@ namespace Formulas
                         d = lookup(t);
                     }catch(UndefinedVariableException)
                     {
-                        throw new FormulaEvaluationException("No variables have values.");
+                        throw new FormulaEvaluationException("Variable lacking value.");
                     }
                     if (values.Count != 0)
                     {
@@ -273,7 +318,7 @@ namespace Formulas
         /// <summary>
         /// Given an operator and two doubles returns the result of the operation
         /// </summary>
-        public double Result(String s, double d2, double d1)
+        public double Result(string s, double d2, double d1)
         {
             switch (s)
             {
@@ -287,8 +332,8 @@ namespace Formulas
                     return d1 / d2;
                 case "+": return d1 + d2;
                 case "-": return d1 - d2;
-                default: throw new FormulaFormatException("Invalid operator");
             }
+            return 0; // This will never run
         }
 
         /// <summary>
@@ -311,6 +356,10 @@ namespace Formulas
             String pattern = String.Format("({0}) | ({1}) | ({2}) | ({3}) | ({4}) | ({5})",
                                             lpPattern, rpPattern, opPattern, varPattern, doublePattern, spacePattern);
 
+            if(formula == null)
+            {
+                formula = "0";
+            }
             // Enumerate matching tokens that don't consist solely of white space.
             foreach (String s in Regex.Split(formula, pattern, RegexOptions.IgnorePatternWhitespace))
             {
@@ -330,6 +379,17 @@ namespace Formulas
     /// don't is up to the implementation of the method.
     /// </summary>
     public delegate double Lookup(string s);
+
+    /// <summary>
+    /// A Normalizer method is one that converts variables into a canonical form.
+    /// </summary>
+    public delegate string Normalizer(string s);
+
+    /// <summary>
+    /// A Validator method is one that imposes extra restrictions on the validity of a variable beyond what
+    /// is built into Formula.
+    /// </summary>
+    public delegate bool Validator(string s);
 
     /// <summary>
     /// Used to report that a Lookup delegate is unable to determine the value
