@@ -52,14 +52,29 @@ namespace Dependencies
     /// </summary>
     public class DependencyGraph
     {
-        private Dictionary<string,Dependencies> dependencies;
+        /// <summary>
+        /// Contains the dependents of each key.
+        /// </summary>
+        private Dictionary<string, HashSet<string>> depents;
+
+        /// <summary>
+        /// Contains the dependees of each key.
+        /// </summary>
+        private Dictionary<string, HashSet<string>> depees;
+
+        /// <summary>
+        /// Contains the number of ordered pairs in a dependency graph. Cannot be negative or null, will be 0 if there are no pairs.
+        /// </summary>
         private int _size;
+
         /// <summary>
         /// Creates a DependencyGraph containing no dependencies.
         /// </summary>
         public DependencyGraph()
         {
-            dependencies = new Dictionary<string, Dependencies>();
+            depents = new Dictionary<string, HashSet<string>>();
+            depees = new Dictionary<string, HashSet<string>>();
+
             _size = 0;
         }
 
@@ -76,19 +91,11 @@ namespace Dependencies
         /// </summary>
         public bool HasDependents(string s)
         {
-            Dependencies d;
             if (s != null)
             {
-                if (dependencies.TryGetValue(s, out d))
+                if (depents.ContainsKey(s))
                 {
-                    if (d.dependents.Count == 0)
-                    {
-                        return false;
-                    }
-                    else
-                    {
-                        return true;
-                    }
+                    return true;
                 }
             }
             return false;
@@ -99,19 +106,11 @@ namespace Dependencies
         /// </summary>
         public bool HasDependees(string s)
         {
-            Dependencies d;
             if (s != null)
             {
-                if (dependencies.TryGetValue(s, out d))
+                if (depees.ContainsKey(s))
                 {
-                    if (d.dependees.Count == 0)
-                    {
-                        return false;
-                    }
-                    else
-                    {
-                        return true;
-                    }
+                    return true;
                 }
             }
             return false;
@@ -122,12 +121,12 @@ namespace Dependencies
         /// </summary>
         public IEnumerable<string> GetDependents(string s)
         {
-            Dependencies d;
+            HashSet<string> d;
             if (s != null)
             {
-                if (dependencies.TryGetValue(s, out d))
+                if (depents.TryGetValue(s, out d))
                 {
-                    foreach (string z in d.dependents)
+                    foreach (string z in d)
                     {
                         yield return z;
                     }
@@ -140,12 +139,12 @@ namespace Dependencies
         /// </summary>
         public IEnumerable<string> GetDependees(string s)
         {
-            Dependencies d;
+            HashSet<string> d;
             if (s != null)
             {
-                if (dependencies.TryGetValue(s, out d))
+                if (depees.TryGetValue(s, out d))
                 {
-                    foreach (string z in d.dependees)
+                    foreach (string z in d)
                     {
                         yield return z;
                     }
@@ -160,50 +159,51 @@ namespace Dependencies
         /// </summary>
         public void AddDependency(string s, string t)
         {
-            Dependencies d = new Dependencies();
+            HashSet<string> d = new HashSet<string>();
             if (s != null && t != null)
             {
-                if (dependencies.Count != 0)
+                if (!depents.ContainsKey(s) || depents.Equals(null))
                 {
-                    if (dependencies.TryGetValue(s, out d))
+                    d.Add(t);
+                    depents.Add(s, d);
+                    _size++;
+                    d = new HashSet<string>();
+                    if(!depees.ContainsKey(t))
                     {
-                        if (!d.dependents.Contains(t))
-                        {
-                            d.dependents.Add(t);
-                            _size++;
-                        }
+                        d.Add(s);
+                        depees.Add(t, d);
                     }
                     else
                     {
-                        d = new Dependencies();
-                        d.dependents.Add(t);
-                        dependencies.Add(s, d);
-                        _size++;
-                    }
-                    if (dependencies.TryGetValue(t, out d))
-                    {
-                        if (!d.dependees.Contains(s))
+                        if(depees.TryGetValue(t, out d))
                         {
-                            d.dependees.Add(s);
+                            d.Add(s);
                         }
-                    }
-                    else
-                    {
-                        d = new Dependencies();
-                        d.dependees.Add(s);
-                        dependencies.Add(t, d);
                     }
                 }
                 else
                 {
-                    d = new Dependencies();
-                    d.dependents.Add(t);
-                    dependencies.Add(s, d);
-
-                    d = new Dependencies();
-                    d.dependees.Add(s);
-                    dependencies.Add(t, d);
-                    _size++;
+                    if (depents.TryGetValue(s, out d))
+                    {
+                        if (!d.Contains(t))
+                        {
+                            d.Add(t);
+                            _size++;
+                            if (!depees.ContainsKey(t))
+                            {
+                                d = new HashSet<string>();
+                                d.Add(s);
+                                depees.Add(t, d);
+                            }
+                            else
+                            {
+                                if (depees.TryGetValue(t, out d))
+                                {
+                                    d.Add(s);
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -215,24 +215,27 @@ namespace Dependencies
         /// </summary>
         public void RemoveDependency(string s, string t)
         {
-            Dependencies d;
+            HashSet<string> d;
             if (s != null && t != null)
             {
-                if (dependencies.TryGetValue(s, out d))
+                if(depents.ContainsKey(s))
                 {
-                    d.dependents.Remove(t);
                     _size--;
-                    if (d.dependees.Count == 0 && d.dependents.Count == 0)
+                    if (depents.TryGetValue(s, out d))
                     {
-                        dependencies.Remove(s);
+                        d.Remove(t);
+                        if (d.Count == 0)
+                        {
+                            depents.Remove(s);
+                        }
                     }
-                }
-                if (dependencies.TryGetValue(t, out d))
-                {
-                    d.dependees.Remove(s);
-                    if (d.dependees.Count == 0 && d.dependents.Count == 0)
+                    if (depees.TryGetValue(t, out d))
                     {
-                        dependencies.Remove(t);
+                        d.Remove(s);
+                        if (d.Count == 0)
+                        {
+                            depees.Remove(t);
+                        }
                     }
                 }
             }
@@ -245,20 +248,24 @@ namespace Dependencies
         /// </summary>
         public void ReplaceDependents(string s, IEnumerable<string> newDependents)
         {
-            Dependencies d = new Dependencies();
+            HashSet<string> d;
             if (s != null)
             {
-                if (dependencies.TryGetValue(s, out d))
+                if (depents.TryGetValue(s, out d))
                 {
-                    d.dependents.Clear();
-                    if (newDependents != null)
+                    List<string> list = new List<string>(d);
+                    foreach (string t in list)
                     {
-                        foreach (string t in newDependents)
+                        RemoveDependency(s, t);
+                    }
+                }
+                if (newDependents != null)
+                {
+                    foreach (string t in newDependents)
+                    {
+                        if (t != null)
                         {
-                            if (t != null)
-                            {
-                                d.dependents.Add(t);
-                            }
+                            AddDependency(s, t);
                         }
                     }
                 }
@@ -272,29 +279,28 @@ namespace Dependencies
         /// </summary>
         public void ReplaceDependees(string t, IEnumerable<string> newDependees)
         {
-            List<string> keys = new List<string>(dependencies.Keys);
-            //Convert the collection of keys to a list before running the foreach otherise you get an error if something is removed from the collection
-            foreach(string s in keys)
+            HashSet<string> d;
+            if (t != null)
             {
-                RemoveDependency(s, t);
+                if (depees.TryGetValue(t, out d))
+                {
+                    List<string> list = new List<string>(d);
+                    foreach (string s in list)
+                    {
+                        RemoveDependency(s, t);
+                    }
+                }
+                if (newDependees != null)
+                {
+                    foreach (string s in newDependees)
+                    {
+                        if (s != null)
+                        {
+                            AddDependency(s, t);
+                        }
+                    }
+                }
             }
-            foreach (string s in newDependees)
-            {
-                AddDependency(s, t);
-            }
-            
-        }
-    }
-
-    public class Dependencies
-    {
-        public List<string> dependents { get; set; }
-        public List<string> dependees { get; set; }
-
-        public Dependencies()
-        {
-            dependents = new List<string>();
-            dependees = new List<string>();
         }
     }
 }
