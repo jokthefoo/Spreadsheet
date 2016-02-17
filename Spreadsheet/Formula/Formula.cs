@@ -127,11 +127,17 @@ namespace Formulas
         /// </summary>
         public ISet<string> GetVariables()
         {
+            if (thisFormula == null)
+            {
+                thisFormula = new List<string>();
+                thisFormula.Add("0");
+            }
             String varPattern = @"[a-zA-Z][0-9a-zA-Z]*";
+            String doublePattern = @"(?: \d+\.\d* | \d*\.\d+ | \d+ ) (?: e[\+-]?\d+)?";
             HashSet<string> s = new HashSet<string>();
             foreach (String t in thisFormula)
             {
-                if(Regex.IsMatch(t, varPattern, RegexOptions.IgnorePatternWhitespace))
+                if(Regex.IsMatch(t, varPattern, RegexOptions.IgnorePatternWhitespace) && !Regex.IsMatch(t, doublePattern, RegexOptions.IgnorePatternWhitespace))
                 {
                     s.Add(t);
                 }
@@ -144,6 +150,11 @@ namespace Formulas
         /// </summary>
         public override String ToString()
         {
+            if(thisFormula == null)
+            {
+                thisFormula = new List<string>();
+                thisFormula.Add("0");
+            }
             String formula = "";
             foreach(string s in thisFormula)
             {
