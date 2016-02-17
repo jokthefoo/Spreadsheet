@@ -7,7 +7,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 
 namespace Formulas
@@ -132,12 +131,11 @@ namespace Formulas
                 thisFormula = new List<string>();
                 thisFormula.Add("0");
             }
-            String varPattern = @"[a-zA-Z][0-9a-zA-Z]*";
-            String doublePattern = @"(?: \d+\.\d* | \d*\.\d+ | \d+ ) (?: e[\+-]?\d+)?";
+            String varPattern = @"^[a-zA-Z][0-9a-zA-Z]*$";
             HashSet<string> s = new HashSet<string>();
             foreach (String t in thisFormula)
             {
-                if(Regex.IsMatch(t, varPattern, RegexOptions.IgnorePatternWhitespace) && !Regex.IsMatch(t, doublePattern, RegexOptions.IgnorePatternWhitespace))
+                if (Regex.IsMatch(t, varPattern, RegexOptions.IgnorePatternWhitespace))
                 {
                     s.Add(t);
                 }
