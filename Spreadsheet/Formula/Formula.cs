@@ -137,7 +137,7 @@ namespace Formulas
             {
                 if (Regex.IsMatch(t, varPattern, RegexOptions.IgnorePatternWhitespace))
                 {
-                    s.Add(t);
+                    s.Add(t.ToUpper());
                 }
             }
             return s;
