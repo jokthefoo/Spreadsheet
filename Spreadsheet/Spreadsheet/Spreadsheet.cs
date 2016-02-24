@@ -158,20 +158,35 @@ namespace SS
                 sheet.Add(name, new Cell(name, formula));
             }
 
+            Dependencies.DependencyGraph tempGraph = graph;
             Cell c;
+            HashSet<string> set = new HashSet<string>();
+
+            try
+            {
+                graph.ReplaceDependees(name, formula.GetVariables());
+
+                foreach (string s in GetCellsToRecalculate(name))
+                {
+                    set.Add(s);
+                }
+            }
+            catch(CircularException)
+            {
+                graph = tempGraph;
+                foreach (string s in GetCellsToRecalculate(name))
+                {
+                    set.Add(s);
+                }
+                return set;
+            }
+
             if (sheet.TryGetValue(name, out c))
             {
                 c.SetContents(formula);
-                graph.ReplaceDependees(name, formula.GetVariables());
                 sheet[name] = c;
             }
 
-            HashSet<string> set = new HashSet<string>();
-            foreach (string s in GetCellsToRecalculate(name))
-            {
-                set.Add(s);
-            }
-            
             return set;
         }
 
