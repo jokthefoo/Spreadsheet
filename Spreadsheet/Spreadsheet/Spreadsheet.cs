@@ -71,7 +71,7 @@ namespace SS
         /// Regex espression for the spreadsheet that you compare to, to see if things are valid
         /// </summary>
         private Regex isValid;
-
+        
         /// <summary>
         /// True if this spreadsheet has been modified since it was created or saved
         /// (whichever happened most recently); false otherwise.
@@ -80,13 +80,10 @@ namespace SS
         {
             get
             {
-                throw new NotImplementedException();
+                return Changed;
             }
-
             protected set
-            {
-                throw new NotImplementedException();
-            }
+            {}
         }
 
         /// <summary>
@@ -97,6 +94,7 @@ namespace SS
             sheet = new Dictionary<string, Cell>();
             graph = new Dependencies.DependencyGraph();
             isValid = new Regex("");
+            Changed = false;
         }
 
         /// <summary>
@@ -107,6 +105,7 @@ namespace SS
             sheet = new Dictionary<string, Cell>();
             graph = new Dependencies.DependencyGraph();
             isValid = isVd;
+            Changed = false;
         }
 
         /// <summary>
@@ -122,6 +121,8 @@ namespace SS
         {
             sheet = new Dictionary<string, Cell>();
             graph = new Dependencies.DependencyGraph();
+
+            Changed = false;
         }
 
         /// <summary>
@@ -389,6 +390,7 @@ namespace SS
         public override void Save(TextWriter dest)
         {
             throw new NotImplementedException();
+            Changed = false;
         }
 
         /// <summary>
@@ -496,6 +498,8 @@ namespace SS
             {
                 throw new InvalidNameException();
             }
+
+            Changed = true;
             double d;
             if(double.TryParse(content, out d))
             {
