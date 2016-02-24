@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Formulas;
 using System.Text.RegularExpressions;
+using System.IO;
 
 namespace SS
 {
@@ -54,6 +55,19 @@ namespace SS
         private Dictionary<string, Cell> sheet;
         private Dependencies.DependencyGraph graph;
 
+        public override bool Changed
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+
+            protected set
+            {
+                throw new NotImplementedException();
+            }
+        }
+
         /// <summary>
         /// Zero arguement constructor that creates an empty spreadsheet
         /// </summary>
@@ -91,7 +105,7 @@ namespace SS
         /// </summary>
         private bool isValid(string s)
         {
-            String pattern = @"[a-zA-Z]+[1-9][0-9]*";
+            String pattern = @"^[a-zA-Z]+[1-9][0-9]*$";
             if(s  == null)
             {
                 return false;
@@ -267,6 +281,21 @@ namespace SS
                 throw new InvalidNameException();
             }
             return graph.GetDependents(name);
+        }
+
+        public override void Save(TextWriter dest)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override object GetCellValue(string name)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override ISet<string> SetContentsOfCell(string name, string content)
+        {
+            throw new NotImplementedException();
         }
     }
 }
