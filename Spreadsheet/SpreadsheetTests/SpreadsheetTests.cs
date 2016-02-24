@@ -1,5 +1,7 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Collections.Generic;
+using Formulas;
 
 namespace SS
 {
@@ -34,7 +36,7 @@ namespace SS
         [TestMethod]
         public void TestGetCellContents3()
         {
-            AbstractSpreadsheet sheet = new Spreadsheet();
+            TestableSpreadsheet sheet = new TestableSpreadsheet();
             sheet.SetCellContents("a2", "testing");
             Assert.AreEqual("testing", sheet.GetCellContents("a2"));
         }
@@ -45,7 +47,7 @@ namespace SS
         [TestMethod]
         public void TestGetCellContents4()
         {
-            AbstractSpreadsheet sheet = new Spreadsheet();
+            TestableSpreadsheet sheet = new TestableSpreadsheet();
             sheet.SetCellContents("a2", 2.5);
             Assert.AreEqual(2.5, sheet.GetCellContents("a2"));
         }
@@ -56,7 +58,7 @@ namespace SS
         [TestMethod]
         public void TestGetCellContents5()
         {
-            AbstractSpreadsheet sheet = new Spreadsheet();
+            TestableSpreadsheet sheet = new TestableSpreadsheet();
             sheet.SetCellContents("a2", "2+5+x41+y23");
             Assert.AreEqual(new Formulas.Formula("2+5+x41+y23").ToString(), sheet.GetCellContents("a2"));
         }
@@ -67,7 +69,7 @@ namespace SS
         [TestMethod]
         public void TestGetNames1()
         {
-            AbstractSpreadsheet sheet = new Spreadsheet();
+            TestableSpreadsheet sheet = new TestableSpreadsheet();
             sheet.SetCellContents("a1", "a-one");
             sheet.SetCellContents("a2", "a-two");
             sheet.SetCellContents("a3", "a-three");
@@ -86,7 +88,7 @@ namespace SS
         [ExpectedException(typeof(ArgumentNullException))]
         public void SetCellContents1()
         {
-            AbstractSpreadsheet sheet = new Spreadsheet();
+            TestableSpreadsheet sheet = new TestableSpreadsheet();
             sheet.SetCellContents("a1", null);
         }
 
@@ -97,7 +99,7 @@ namespace SS
         [ExpectedException(typeof(InvalidNameException))]
         public void SetCellContents2()
         {
-            AbstractSpreadsheet sheet = new Spreadsheet();
+            TestableSpreadsheet sheet = new TestableSpreadsheet();
             sheet.SetCellContents(null,"test");
         }
 
@@ -108,7 +110,7 @@ namespace SS
         [ExpectedException(typeof(InvalidNameException))]
         public void SetCellContents3()
         {
-            AbstractSpreadsheet sheet = new Spreadsheet();
+            TestableSpreadsheet sheet = new TestableSpreadsheet();
             sheet.SetCellContents("test", "test");
         }
 
@@ -118,7 +120,7 @@ namespace SS
         [TestMethod]
         public void SetCellContents4()
         {
-            AbstractSpreadsheet sheet = new Spreadsheet();
+            TestableSpreadsheet sheet = new TestableSpreadsheet();
             Formulas.Formula f1 = new Formulas.Formula("13+a1");
             Formulas.Formula f2 = new Formulas.Formula("a2+a1");
             sheet.SetCellContents("a1", 45);
@@ -139,7 +141,7 @@ namespace SS
         [ExpectedException(typeof(CircularException))]
         public void SetCellContents5()
         {
-            AbstractSpreadsheet sheet = new Spreadsheet();
+            TestableSpreadsheet sheet = new TestableSpreadsheet();
             Formulas.Formula f1 = new Formulas.Formula("13+a1");
             Formulas.Formula f2 = new Formulas.Formula("12+a2");
             sheet.SetCellContents("a1", "45");
@@ -184,7 +186,7 @@ namespace SS
         [ExpectedException(typeof(InvalidNameException))]
         public void SetCellContents6()
         {
-            AbstractSpreadsheet sheet = new Spreadsheet();
+            TestableSpreadsheet sheet = new TestableSpreadsheet();
             sheet.SetCellContents(null, new Formulas.Formula("1+2"));
         }
 
@@ -195,8 +197,26 @@ namespace SS
         [ExpectedException(typeof(InvalidNameException))]
         public void SetCellContents8()
         {
-            AbstractSpreadsheet sheet = new Spreadsheet();
+            TestableSpreadsheet sheet = new TestableSpreadsheet();
             sheet.SetCellContents("test", 2.5);
+        }
+    }
+
+    public class TestableSpreadsheet : Spreadsheet
+    {
+        public new ISet<string> SetCellContents(string name, string text)
+        {
+            return base.SetCellContents(name, text);
+        }
+
+        public new ISet<string> SetCellContents(string name, double number)
+        {
+            return base.SetCellContents(name, number);
+        }
+
+        public new ISet<string> SetCellContents(string name, Formula formula)
+        {
+            return base.SetCellContents(name, formula);
         }
     }
 }
