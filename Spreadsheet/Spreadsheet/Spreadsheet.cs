@@ -163,6 +163,7 @@ namespace SS
             {
                 c.SetContents(formula);
                 graph.ReplaceDependees(name, formula.GetVariables());
+                sheet[name] = c;
             }
 
             HashSet<string> set = new HashSet<string>();
@@ -212,6 +213,7 @@ namespace SS
             if (sheet.TryGetValue(name, out c))
             {
                 c.SetContents(text);
+                sheet[name] = c;
             }
             if(text == "")
             {
@@ -252,6 +254,7 @@ namespace SS
             if (sheet.TryGetValue(name, out c))
             {
                 c.SetContents(number);
+                sheet[name] = c;
             }
 
             return set;
