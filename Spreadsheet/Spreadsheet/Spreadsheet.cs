@@ -213,6 +213,10 @@ namespace SS
             {
                 c.SetContents(text);
             }
+            if(text == "")
+            {
+                sheet.Remove(name);
+            }
 
             return set;
         }
