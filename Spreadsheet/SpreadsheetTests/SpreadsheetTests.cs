@@ -2,6 +2,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
 using Formulas;
+using System.Text.RegularExpressions;
 
 namespace SS
 {
@@ -78,7 +79,7 @@ namespace SS
             {
                 s = s + t;
             }
-            Assert.AreEqual("a1a2a3",s);
+            Assert.AreEqual("A1A2A3",s);
         }
 
         /// <summary>
@@ -131,7 +132,7 @@ namespace SS
             {
                 s = s + t;
             }
-            Assert.AreEqual("a1a2a3", s);
+            Assert.AreEqual("A1A2A3", s);
         }
 
         /// <summary>
@@ -199,6 +200,135 @@ namespace SS
         {
             TestableSpreadsheet sheet = new TestableSpreadsheet();
             sheet.SetCellContents("test", 2.5);
+        }
+
+        /// <summary>
+        /// Test SetCellContents for string with invalid contents
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(InvalidNameException))]
+        public void SetCellContents9()
+        {
+            TestableSpreadsheet sheet = new TestableSpreadsheet();
+            sheet.SetCellContents("test", "");
+        }
+
+        /// <summary>
+        /// Test GetCellValue with null
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(InvalidNameException))]
+        public void GetCellValue1()
+        {
+            TestableSpreadsheet sheet = new TestableSpreadsheet();
+            sheet.SetContentsOfCell("A1", "5");
+            Assert.AreEqual(5.0,sheet.GetCellValue(null));
+        }
+
+        /// <summary>
+        /// Test GetCellValue 
+        /// </summary>
+        [TestMethod]
+        public void GetCellValue2()
+        {
+            TestableSpreadsheet sheet = new TestableSpreadsheet();
+            sheet.SetContentsOfCell("A1", "5");
+            Assert.AreEqual(5.0, sheet.GetCellValue("A1"));
+        }
+
+
+        /// <summary>
+        /// Test Constructor 
+        /// </summary>
+        [TestMethod]
+        public void ConstructorTest1()
+        {
+            Regex r = new Regex("");
+            AbstractSpreadsheet sheet = new Spreadsheet(r);
+            sheet.SetContentsOfCell("A1", "5");
+            Assert.AreEqual(5.0, sheet.GetCellValue("A1"));
+        }
+
+        /// <summary>
+        /// Test Constructor 
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(InvalidNameException))]
+        public void ConstructorTest2()
+        {
+            Regex r = new Regex(@"^A+1$");
+            AbstractSpreadsheet sheet = new Spreadsheet(r);
+            sheet.SetContentsOfCell("B1", "5");
+        }
+
+        /// <summary>
+        /// Test SetContentsOfCell 
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentNullException))]
+        public void SetContentsOfCell1()
+        {
+            AbstractSpreadsheet sheet = new Spreadsheet();
+            sheet.SetContentsOfCell("B1", null);
+        }
+
+        /// <summary>
+        /// Test SetContentsOfCell 
+        /// </summary>
+        [TestMethod]
+        public void SetContentsOfCell2()
+        {
+            AbstractSpreadsheet sheet = new Spreadsheet();
+            sheet.SetContentsOfCell("B1", "");
+        }
+
+        /// <summary>
+        /// Test SetContentsOfCell 
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(InvalidNameException))]
+        public void SetContentsOfCell3()
+        {
+            AbstractSpreadsheet sheet = new Spreadsheet();
+            sheet.SetContentsOfCell(null, "asdf");
+        }
+
+        /// <summary>
+        /// Test SetContentsOfCell 
+        /// </summary>
+        [TestMethod]
+        public void SetContentsOfCell4()
+        {
+            AbstractSpreadsheet sheet = new Spreadsheet();
+            sheet.SetContentsOfCell("B1", "=2+3");
+            Assert.AreEqual(5.0, sheet.GetCellValue("B1"));
+        }
+
+        /// <summary>
+        /// Test SetContentsOfCell 
+        /// </summary>
+        [TestMethod]
+        public void SetContentsOfCell5()
+        {
+            AbstractSpreadsheet sheet = new Spreadsheet();
+            sheet.SetContentsOfCell("B1", "asdf");
+            Assert.AreEqual("asdf",sheet.GetCellValue("B1"));
+        }
+
+        /// <summary>
+        /// Test SetContentsOfCell 
+        /// </summary>
+        [TestMethod]
+        public void SetContentsOfCell6()
+        {
+            AbstractSpreadsheet sheet = new Spreadsheet();
+            sheet.SetContentsOfCell("A1", "5");
+            sheet.SetContentsOfCell("A2", "5");
+            sheet.SetContentsOfCell("A3", "=A1+A2");
+            sheet.SetContentsOfCell("A4", "=A3+A2");
+            Assert.AreEqual(15.0, sheet.GetCellValue("a4"));
+            sheet.SetContentsOfCell("A3", "=25");
+            Assert.AreEqual(30.0, sheet.GetCellValue("a4"));
         }
     }
 

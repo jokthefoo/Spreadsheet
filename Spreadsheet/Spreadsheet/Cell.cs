@@ -48,8 +48,9 @@ namespace SS
         {
             Name = n;
             contents = v;
-            Value = null; //TODO: Setting value = null for now
+            Value = new FormulaError();
         }
+
 
         /// <summary>
         /// Returns the contents of the cell
@@ -81,6 +82,7 @@ namespace SS
         public void SetContents(double d)
         {
             contents = d;
+            Value = d;
         }
 
         /// <summary>
@@ -89,6 +91,40 @@ namespace SS
         public void SetContents(string s)
         {
             contents = s;
+            Value = s;
+        }
+
+        /// <summary>
+        /// Returns the value of the cell
+        /// </summary>
+        public object GetValue()
+        {
+            return Value;
+        }
+
+
+        /// <summary>
+        /// Sets the value of the cell
+        /// </summary>
+        public void SetValue(double d)
+        {
+            Value = d;
+        }
+
+        /// <summary>
+        /// Sets the value of the cell
+        /// </summary>
+        public void SetValue(string s)
+        {
+            Value = s;
+        }
+
+        /// <summary>
+        /// Sets the value of the cell
+        /// </summary>
+        public void SetValue(FormulaError e)
+        {
+            Value = e;
         }
     }
 }

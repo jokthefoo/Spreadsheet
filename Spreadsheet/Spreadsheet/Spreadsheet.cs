@@ -7,16 +7,23 @@ using System.IO;
 namespace SS
 {
     /// <summary>
-    /// An Spreadsheet object represents the state of a simple spreadsheet.  A 
-    /// spreadsheet consists of an infinite number of named cells.
+    /// A Spreadsheet object represents the state of a simple spreadsheet.  A 
+    /// spreadsheet consists of a regular expression (called IsValid below) and an infinite 
+    /// number of named cells.
     /// 
-    /// A string is a cell name if and only if it consists of one or more letters, 
-    /// followed by a non-zero digit, followed by zero or more digits.  Cell names
-    /// are not case sensitive.
+    /// A string is a valid cell name if and only if (1) s consists of one or more letters, 
+    /// followed by a non-zero digit, followed by zero or more digits AND (2) the C#
+    /// expression IsValid.IsMatch(s.ToUpper()) is true.
     /// 
-    /// For example, "A15", "a15", "XY32", and "BC7" are cell names.  (Note that 
-    /// "A15" and "a15" name the same cell.)  On the other hand, "Z", "X07", and 
-    /// "hello" are not cell names."
+    /// For example, "A15", "a15", "XY32", and "BC7" are valid cell names, so long as they also
+    /// are accepted by IsValid.  On the other hand, "Z", "X07", and "hello" are not valid cell 
+    /// names, regardless of IsValid.
+    /// 
+    /// Any valid incoming cell name, whether passed as a parameter or embedded in a formula,
+    /// must be normalized by converting all letters to upper case before it is used by this 
+    /// this spreadsheet.  For example, the Formula "x3+a5" should be normalize to "X3+A5" before 
+    /// use.  Similarly, all cell names and Formulas that are returned or written to a file must also
+    /// be normalized.
     /// 
     /// A spreadsheet contains a cell corresponding to every possible cell name.  
     /// In addition to a name, each cell has a contents and a value.  The distinction is
@@ -52,9 +59,23 @@ namespace SS
     /// </summary>
     public class Spreadsheet : AbstractSpreadsheet
     {
+        /// <summary>
+        /// Dictionary that maps cell names to cells
+        /// </summary>
         private Dictionary<string, Cell> sheet;
+        /// <summary>
+        /// Dependency Graph of the spreadsheet to know which cells are dependent on other cells
+        /// </summary>
         private Dependencies.DependencyGraph graph;
+        /// <summary>
+        /// Regex espression for the spreadsheet that you compare to, to see if things are valid
+        /// </summary>
+        private Regex isValid;
 
+        /// <summary>
+        /// True if this spreadsheet has been modified since it was created or saved
+        /// (whichever happened most recently); false otherwise.
+        /// </summary>
         public override bool Changed
         {
             get
@@ -69,9 +90,35 @@ namespace SS
         }
 
         /// <summary>
-        /// Zero arguement constructor that creates an empty spreadsheet
+        /// Creates an empty Spreadsheet whose IsValid regular expression accepts every string.
         /// </summary>
         public Spreadsheet()
+        {
+            sheet = new Dictionary<string, Cell>();
+            graph = new Dependencies.DependencyGraph();
+            isValid = new Regex("");
+        }
+
+        /// <summary>
+        /// Creates an empty Spreadsheet whose IsValid regular expression is provided as the parameter
+        /// </summary>
+        public Spreadsheet(Regex isVd)
+        {
+            sheet = new Dictionary<string, Cell>();
+            graph = new Dependencies.DependencyGraph();
+            isValid = isVd;
+        }
+
+        /// <summary>
+        /// Creates a Spreadsheet that is a duplicate of the spreadsheet saved in source.
+        /// See the AbstractSpreadsheet.Save method and Spreadsheet.xsd for the file format 
+        /// specification.  If there's a problem reading source, throws an IOException
+        /// If the contents of source are not consistent with the schema in Spreadsheet.xsd, 
+        /// throws a SpreadsheetReadException.  If there is an invalid cell name, or a 
+        /// duplicate cell name, or an invalid formula in the source, throws a SpreadsheetReadException.
+        /// If there's a Formula that causes a circular dependency, throws a SpreadsheetReadException. 
+        /// </summary>
+        public Spreadsheet(TextReader source)
         {
             sheet = new Dictionary<string, Cell>();
             graph = new Dependencies.DependencyGraph();
@@ -85,11 +132,11 @@ namespace SS
         /// </summary>
         public override object GetCellContents(string name)
         {
-            if(name == null || !isValid(name))
+            if(name == null || !isValidName(name))
             {
                 throw new InvalidNameException();
             }
-
+            name = name.ToUpper();
             Cell c;
             if(sheet.TryGetValue(name, out c))
             {
@@ -103,7 +150,7 @@ namespace SS
         /// <summary>
         /// Checks to see if the name is a valid cell name
         /// </summary>
-        private bool isValid(string s)
+        private bool isValidName(string s)
         {
             String pattern = @"^[a-zA-Z]+[1-9][0-9]*$";
             if(s  == null)
@@ -112,7 +159,10 @@ namespace SS
             }
             if(Regex.IsMatch(s,pattern))
             {
-                return true;
+                if(isValid.IsMatch(s.ToUpper()))
+                {
+                    return true;
+                }
             }
             return false;
         }
@@ -149,10 +199,12 @@ namespace SS
             {
                 throw new ArgumentNullException();
             }
-            if (!isValid(name))
+            if (!isValidName(name))
             {
                 throw new InvalidNameException();
             }
+            name = name.ToUpper();
+            formula = new Formula(formula.ToString().ToUpper());
             if (!sheet.ContainsKey(name))
             {
                 sheet.Add(name, new Cell(name, formula));
@@ -187,6 +239,8 @@ namespace SS
                 sheet[name] = c;
             }
 
+            UpdateValue(set);
+
             return set;
         }
 
@@ -210,11 +264,12 @@ namespace SS
             {
                 throw new ArgumentNullException();
             }
-            if (!isValid(name))
+            if (!isValidName(name))
             {
                 throw new InvalidNameException();
             }
-            if(!sheet.ContainsKey(name))
+            name = name.ToUpper();
+            if (!sheet.ContainsKey(name))
             {
                 sheet.Add(name, new Cell(name, text));
             }
@@ -230,10 +285,13 @@ namespace SS
                 c.SetContents(text);
                 sheet[name] = c;
             }
-            if(text == "")
+
+            if (text == "")
             {
                 sheet.Remove(name);
             }
+
+            UpdateValue(set);
 
             return set;
         }
@@ -250,10 +308,11 @@ namespace SS
         /// </summary>
         protected override ISet<string> SetCellContents(string name, double number)
         {
-            if (!isValid(name))
+            if (!isValidName(name))
             {
                 throw new InvalidNameException();
             }
+            name = name.ToUpper();
             if (!sheet.ContainsKey(name))
             {
                 sheet.Add(name, new Cell(name, number));
@@ -271,6 +330,8 @@ namespace SS
                 c.SetContents(number);
                 sheet[name] = c;
             }
+
+            UpdateValue(set);
 
             return set;
         }
@@ -298,26 +359,156 @@ namespace SS
             {
                 throw new ArgumentNullException();
             }
-            else if(!isValid(name))
+            else if(!isValidName(name))
             {
                 throw new InvalidNameException();
             }
+            name = name.ToUpper();
             return graph.GetDependents(name);
         }
 
+        /// <summary>
+        /// Writes the contents of this spreadsheet to dest using an XML format.
+        /// The XML elements should be structured as follows:
+        ///
+        /// <spreadsheet IsValid="IsValid regex goes here">
+        ///   <cell name="cell name goes here" contents="cell contents go here"></cell>
+        ///   <cell name="cell name goes here" contents="cell contents go here"></cell>
+        ///   <cell name="cell name goes here" contents="cell contents go here"></cell>
+        /// </spreadsheet>
+        ///
+        /// The value of the isvalid attribute should be IsValid.ToString()
+        /// 
+        /// There should be one cell element for each non-empty cell in the spreadsheet.
+        /// If the cell contains a string, the string (without surrounding double quotes) should be written as the contents.
+        /// If the cell contains a double d, d.ToString() should be written as the contents.
+        /// If the cell contains a Formula f, f.ToString() with "=" prepended should be written as the contents.
+        ///
+        /// If there are any problems writing to dest, the method should throw an IOException.
+        /// </summary>
         public override void Save(TextWriter dest)
         {
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// If name is null or invalid, throws an InvalidNameException.
+        ///
+        /// Otherwise, returns the value (as opposed to the contents) of the named cell.  The return
+        /// value should be either a string, a double, or a FormulaError.
+        /// </summary>
         public override object GetCellValue(string name)
         {
-            throw new NotImplementedException();
+            if(name == null || !isValidName(name))
+            {
+                throw new InvalidNameException();
+            }
+            name = name.ToUpper();
+            Cell c;
+            sheet.TryGetValue(name, out c);
+            return c.GetValue();
         }
 
+
+        /// <summary>
+        /// Updates the values of cells, called whenever a cell is changed
+        /// </summary>
+        public void UpdateValue(HashSet<string> set)
+        {
+            foreach (string s in set)
+            {
+                if (sheet.ContainsKey(s))
+                {
+                    if (sheet[s].GetContents().GetType() == typeof(Formula))
+                    {
+                        Formula f = (Formula)sheet[s].GetContents();
+                        try
+                        {
+                            double d = f.Evaluate(CellLookup);
+                            Cell c;
+                            sheet.TryGetValue(s, out c);
+                            c.SetValue(d);
+                            sheet[s] = c;
+                        }
+                        catch (FormulaEvaluationException)
+                        {
+                            sheet[s].SetValue(new FormulaError());
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Lookup for formula evaluate, Looks up cells and if their value is a double returns the double else throws error
+        /// </summary>
+        public double CellLookup(string name)
+        {
+            if (sheet.ContainsKey(name))
+            {
+                if (sheet[name].GetValue().GetType() == typeof(string) || sheet[name].GetValue().GetType() == typeof(FormulaError))
+                {
+                    throw new UndefinedVariableException(sheet[name].GetContents().ToString());
+                }
+                return (double)sheet[name].GetValue();
+            }
+            return 0; // should never run
+        }
+
+        /// <summary>
+        /// If content is null, throws an ArgumentNullException.
+        ///
+        /// Otherwise, if name is null or invalid, throws an InvalidNameException.
+        ///
+        /// Otherwise, if content parses as a double, the contents of the named
+        /// cell becomes that double.
+        ///
+        /// Otherwise, if content begins with the character '=', an attempt is made
+        /// to parse the remainder of content into a Formula f using the Formula
+        /// constructor with s => s.ToUpper() as the normalizer and a validator that
+        /// checks that s is a valid cell name as defined in the AbstractSpreadsheet
+        /// class comment.  There are then three possibilities:
+        ///
+        ///   (1) If the remainder of content cannot be parsed into a Formula, a
+        ///       Formulas.FormulaFormatException is thrown.
+        ///
+        ///   (2) Otherwise, if changing the contents of the named cell to be f
+        ///       would cause a circular dependency, a CircularException is thrown.
+        ///
+        ///   (3) Otherwise, the contents of the named cell becomes f.
+        ///
+        /// Otherwise, the contents of the named cell becomes content.
+        ///
+        /// If an exception is not thrown, the method returns a set consisting of
+        /// name plus the names of all other cells whose value depends, directly
+        /// or indirectly, on the named cell.
+        ///
+        /// For example, if name is A1, B1 contains A1*2, and C1 contains B1+A1, the
+        /// set {A1, B1, C1} is returned.
+        /// </summary>
         public override ISet<string> SetContentsOfCell(string name, string content)
         {
-            throw new NotImplementedException();
+            if(content == null)
+            {
+                throw new ArgumentNullException();
+            }
+            if(name == null || !isValidName(name))
+            {
+                throw new InvalidNameException();
+            }
+            double d;
+            if(double.TryParse(content, out d))
+            {
+                return SetCellContents(name, d);
+            }else if(content.StartsWith("="))
+            {
+                Formula f = new Formula(content.Substring(1), s => s.ToUpper(), isValidName);
+                return SetCellContents(name, f);
+            }
+            else
+            {
+                return SetCellContents(name, content);
+            }
         }
     }
 }
