@@ -3,6 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
 using Formulas;
 using System.Text.RegularExpressions;
+using System.IO;
 
 namespace SS
 {
@@ -329,6 +330,95 @@ namespace SS
             Assert.AreEqual(15.0, sheet.GetCellValue("a4"));
             sheet.SetContentsOfCell("A3", "=25");
             Assert.AreEqual(30.0, sheet.GetCellValue("a4"));
+        }
+
+        /// <summary>
+        /// Test Save 
+        /// </summary>
+        [TestMethod]
+        public void SaveTest1()
+        {
+            Regex r = new Regex("^.*$");
+            AbstractSpreadsheet sheet = new Spreadsheet(r);
+            sheet.SetContentsOfCell("A1", "5");
+            sheet.SetContentsOfCell("A2", "5");
+            sheet.SetContentsOfCell("A3", "=A1+A2");
+            sheet.SetContentsOfCell("A4", "=A3+A2");
+            TextWriter t = File.CreateText("../../testing.xml");
+            sheet.Save(t);
+        }
+
+        /// <summary>
+        /// Test Read 
+        /// </summary>
+        [TestMethod]
+        public void ReadTest1()
+        {
+            Regex r = new Regex("^.*$");
+            AbstractSpreadsheet sheet = new Spreadsheet(r);
+            sheet.SetContentsOfCell("A1", "5");
+            sheet.SetContentsOfCell("A2", "5");
+            sheet.SetContentsOfCell("A3", "=A1+A2");
+            TextWriter t = File.CreateText("../../testing1.xml");
+            sheet.Save(t);
+            t.Close();
+            TextReader read = File.OpenText("../../testing1.xml");
+            AbstractSpreadsheet sheet1 = new Spreadsheet(read);
+        }
+
+        /// <summary>
+        /// Test Read with duplicate cell names
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(SpreadsheetReadException))]
+        public void ReadTest2()
+        {
+            TextReader read = File.OpenText("../../testing2.xml");
+            AbstractSpreadsheet sheet1 = new Spreadsheet(read);
+        }
+
+        /// <summary>
+        /// Test Read with invalid cell name
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(SpreadsheetReadException))]
+        public void ReadTest3()
+        {
+            TextReader read = File.OpenText("../../testing3.xml");
+            AbstractSpreadsheet sheet1 = new Spreadsheet(read);
+        }
+
+        /// <summary>
+        /// Test Read with invalid formula
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(SpreadsheetReadException))]
+        public void ReadTest4()
+        {
+            TextReader read = File.OpenText("../../testing4.xml");
+            AbstractSpreadsheet sheet1 = new Spreadsheet(read);
+        }
+
+        /// <summary>
+        /// Test Read with bad xml
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(SpreadsheetReadException))]
+        public void ReadTest5()
+        {
+            TextReader read = File.OpenText("../../testing5.xml");
+            AbstractSpreadsheet sheet1 = new Spreadsheet(read);
+        }
+
+        /// <summary>
+        /// Test Read with circular exception
+        /// </summary>
+        [TestMethod]
+        [ExpectedException(typeof(SpreadsheetReadException))]
+        public void ReadTest6()
+        {
+            TextReader read = File.OpenText("../../testing6.xml");
+            AbstractSpreadsheet sheet1 = new Spreadsheet(read);
         }
     }
 

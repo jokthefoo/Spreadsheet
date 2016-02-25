@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using Formulas;
 using System.Text.RegularExpressions;
 using System.IO;
+using System.Xml.Schema;
+using System.Xml;
 
 namespace SS
 {
@@ -122,7 +124,64 @@ namespace SS
             sheet = new Dictionary<string, Cell>();
             graph = new Dependencies.DependencyGraph();
 
+            XmlSchemaSet sc = new XmlSchemaSet();
+
+            sc.Add(null, "Spreadsheet.xsd");
+
+            XmlReaderSettings settings = new XmlReaderSettings();
+            settings.ValidationType = ValidationType.Schema;
+            settings.Schemas = sc;
+            settings.ValidationEventHandler += ValidationCallback;
+
+            using (XmlReader reader = XmlReader.Create(source, settings))
+            {
+                while (reader.Read())
+                {
+                    if (reader.IsStartElement())
+                    {
+                        switch (reader.Name)
+                        {
+                            case "spreadsheet":
+                                isValid = new Regex(reader["IsValid"]);
+                                break;
+                            case "cell":
+                                try
+                                {
+                                    if(sheet.ContainsKey(reader["name"]))
+                                    {
+                                        throw new InvalidDataException();
+                                    }
+                                    SetContentsOfCell(reader["name"], reader["contents"]);
+                                }
+                                catch(InvalidNameException)
+                                {
+                                    throw new SpreadsheetReadException("Invalid name in source file: " + reader["name"]);
+                                }
+                                catch (CircularException)
+                                {
+                                    throw new SpreadsheetReadException("Formula causes circular dependency: " + reader["contents"]);
+                                }
+                                catch(FormulaFormatException)
+                                {
+                                    throw new SpreadsheetReadException("Invalid formula in source file: " + reader["contents"]);
+                                }catch(InvalidDataException)
+                                {
+                                    throw new SpreadsheetReadException("Source file has duplicate cell name: " + reader["name"]);
+                                }
+                                break;
+                        }
+                    }
+                }
+            }
             Changed = false;
+        }
+
+        /// <summary>
+        /// Displays validation errors
+        /// </summary>
+        private static void ValidationCallback(object sender, ValidationEventArgs e)
+        {
+            throw new SpreadsheetReadException("Error within source file.");
         }
 
         /// <summary>
@@ -389,7 +448,30 @@ namespace SS
         /// </summary>
         public override void Save(TextWriter dest)
         {
-            throw new NotImplementedException();
+            using (XmlWriter writer = XmlWriter.Create(dest))
+            {
+                writer.WriteStartDocument();
+                writer.WriteStartElement("spreadsheet", "");
+                writer.WriteAttributeString("IsValid", isValid.ToString());
+
+                foreach (string s in sheet.Keys)
+                {
+                    writer.WriteStartElement("cell");
+                    writer.WriteAttributeString("name", s);
+                    if(sheet[s].GetContents().GetType() == typeof(Formula))
+                    {
+                        writer.WriteAttributeString("contents", "="+sheet[s].GetContents().ToString());
+                    }
+                    else
+                    {
+                        writer.WriteAttributeString("contents", sheet[s].GetContents().ToString());
+                    }
+                    writer.WriteEndElement();
+                }
+
+                writer.WriteEndElement();
+                writer.WriteEndDocument();
+            }
             Changed = false;
         }
 
@@ -432,9 +514,9 @@ namespace SS
                             c.SetValue(d);
                             sheet[s] = c;
                         }
-                        catch (FormulaEvaluationException)
+                        catch (FormulaEvaluationException e)
                         {
-                            sheet[s].SetValue(new FormulaError());
+                            sheet[s].SetValue(new FormulaError(e.ToString()));
                         }
                     }
                 }
