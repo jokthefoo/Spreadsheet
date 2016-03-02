@@ -73,7 +73,8 @@ namespace SS
         /// Regex espression for the spreadsheet that you compare to, to see if things are valid
         /// </summary>
         private Regex isValid;
-        
+
+        private bool isChanged;
         /// <summary>
         /// True if this spreadsheet has been modified since it was created or saved
         /// (whichever happened most recently); false otherwise.
@@ -82,10 +83,12 @@ namespace SS
         {
             get
             {
-                return Changed;
+                return isChanged;
             }
             protected set
-            {}
+            {
+                isChanged = value;
+            }
         }
 
         /// <summary>

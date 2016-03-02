@@ -67,6 +67,15 @@
       <Name>Spreadsheet</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="testing.xml" />
+    <Content Include="testing1.xml" />
+    <Content Include="testing2.xml" />
+    <Content Include="testing3.xml" />
+    <Content Include="testing4.xml" />
+    <Content Include="testing5.xml" />
+    <Content Include="testing6.xml" />
+  </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">
       <ItemGroup>
