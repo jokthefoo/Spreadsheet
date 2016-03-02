@@ -150,13 +150,13 @@ namespace SS
                             case "cell":
                                 try
                                 {
-                                    if(sheet.ContainsKey(reader["name"]))
+                                    if (sheet.ContainsKey(reader["name"]))
                                     {
                                         throw new InvalidDataException();
                                     }
                                     SetContentsOfCell(reader["name"], reader["contents"]);
                                 }
-                                catch(InvalidNameException)
+                                catch (InvalidNameException)
                                 {
                                     throw new SpreadsheetReadException("Invalid name in source file: " + reader["name"]);
                                 }
@@ -164,10 +164,11 @@ namespace SS
                                 {
                                     throw new SpreadsheetReadException("Formula causes circular dependency: " + reader["contents"]);
                                 }
-                                catch(FormulaFormatException)
+                                catch (FormulaFormatException)
                                 {
                                     throw new SpreadsheetReadException("Invalid formula in source file: " + reader["contents"]);
-                                }catch(InvalidDataException)
+                                }
+                                catch (InvalidDataException)
                                 {
                                     throw new SpreadsheetReadException("Source file has duplicate cell name: " + reader["name"]);
                                 }
@@ -195,16 +196,17 @@ namespace SS
         /// </summary>
         public override object GetCellContents(string name)
         {
-            if(name == null || !isValidName(name))
+            if (name == null || !isValidName(name))
             {
                 throw new InvalidNameException();
             }
             name = name.ToUpper();
             Cell c;
-            if(sheet.TryGetValue(name, out c))
+            if (sheet.TryGetValue(name, out c))
             {
                 return c.GetContents();
-            }else
+            }
+            else
             {
                 return "";
             }
@@ -216,13 +218,13 @@ namespace SS
         private bool isValidName(string s)
         {
             String pattern = @"^[a-zA-Z]+[1-9][0-9]*$";
-            if(s  == null)
+            if (s == null)
             {
                 return false;
             }
-            if(Regex.IsMatch(s,pattern))
+            if (Regex.IsMatch(s, pattern))
             {
-                if(isValid.IsMatch(s.ToUpper()))
+                if (isValid.IsMatch(s.ToUpper()))
                 {
                     return true;
                 }
@@ -235,7 +237,7 @@ namespace SS
         /// </summary>
         public override IEnumerable<string> GetNamesOfAllNonemptyCells()
         {
-            foreach(Cell c in sheet.Values)
+            foreach (Cell c in sheet.Values)
             {
                 yield return c.GetName();
             }
@@ -277,23 +279,19 @@ namespace SS
             Cell c;
             HashSet<string> set = new HashSet<string>();
 
+            graph.ReplaceDependees(name, formula.GetVariables());
+
             try
             {
-                graph.ReplaceDependees(name, formula.GetVariables());
-
                 foreach (string s in GetCellsToRecalculate(name))
                 {
                     set.Add(s);
                 }
             }
-            catch(CircularException)
+            catch (CircularException)
             {
                 graph = tempGraph;
-                foreach (string s in GetCellsToRecalculate(name))
-                {
-                    set.Add(s);
-                }
-                return set;
+                throw new CircularException();
             }
 
             if (sheet.TryGetValue(name, out c))
@@ -418,11 +416,11 @@ namespace SS
         /// </summary>
         protected override IEnumerable<string> GetDirectDependents(string name)
         {
-            if(name == null)
+            if (name == null)
             {
                 throw new ArgumentNullException();
             }
-            else if(!isValidName(name))
+            else if (!isValidName(name))
             {
                 throw new InvalidNameException();
             }
@@ -461,9 +459,9 @@ namespace SS
                 {
                     writer.WriteStartElement("cell");
                     writer.WriteAttributeString("name", s);
-                    if(sheet[s].GetContents().GetType() == typeof(Formula))
+                    if (sheet[s].GetContents().GetType() == typeof(Formula))
                     {
-                        writer.WriteAttributeString("contents", "="+sheet[s].GetContents().ToString());
+                        writer.WriteAttributeString("contents", "=" + sheet[s].GetContents().ToString());
                     }
                     else
                     {
@@ -486,7 +484,7 @@ namespace SS
         /// </summary>
         public override object GetCellValue(string name)
         {
-            if(name == null || !isValidName(name))
+            if (name == null || !isValidName(name))
             {
                 throw new InvalidNameException();
             }
@@ -576,21 +574,22 @@ namespace SS
         /// </summary>
         public override ISet<string> SetContentsOfCell(string name, string content)
         {
-            if(content == null)
+            if (content == null)
             {
                 throw new ArgumentNullException();
             }
-            if(name == null || !isValidName(name))
+            if (name == null || !isValidName(name))
             {
                 throw new InvalidNameException();
             }
 
             Changed = true;
             double d;
-            if(double.TryParse(content, out d))
+            if (double.TryParse(content, out d))
             {
                 return SetCellContents(name, d);
-            }else if(content.StartsWith("="))
+            }
+            else if (content.StartsWith("="))
             {
                 Formula f = new Formula(content.Substring(1), s => s.ToUpper(), isValidName);
                 return SetCellContents(name, f);
