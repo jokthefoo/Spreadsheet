@@ -99,6 +99,10 @@ namespace SS
         /// </summary>
         public object GetValue()
         {
+            if(Value == null)
+            {
+                Value = "";
+            }
             return Value;
         }
 
@@ -108,6 +112,7 @@ namespace SS
         /// </summary>
         public void SetValue(double d)
         {
+            Value = new object();
             Value = d;
         }
 
@@ -116,6 +121,7 @@ namespace SS
         /// </summary>
         public void SetValue(string s)
         {
+            Value = new object();
             Value = s;
         }
 
@@ -124,6 +130,7 @@ namespace SS
         /// </summary>
         public void SetValue(FormulaError e)
         {
+            Value = new object();
             Value = e;
         }
     }

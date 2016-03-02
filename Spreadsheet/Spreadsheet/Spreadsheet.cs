@@ -502,6 +502,7 @@ namespace SS
         /// </summary>
         public void UpdateValue(HashSet<string> set)
         {
+            Cell c;
             foreach (string s in set)
             {
                 if (sheet.ContainsKey(s))
@@ -512,14 +513,15 @@ namespace SS
                         try
                         {
                             double d = f.Evaluate(CellLookup);
-                            Cell c;
                             sheet.TryGetValue(s, out c);
                             c.SetValue(d);
                             sheet[s] = c;
                         }
                         catch (FormulaEvaluationException e)
                         {
-                            sheet[s].SetValue(new FormulaError(e.ToString()));
+                            sheet.TryGetValue(s, out c);
+                            c.SetValue(new FormulaError(e.Message.ToString()));
+                            sheet[s] = c;
                         }
                     }
                 }
@@ -533,13 +535,12 @@ namespace SS
         {
             if (sheet.ContainsKey(name))
             {
-                if (sheet[name].GetValue().GetType() == typeof(string) || sheet[name].GetValue().GetType() == typeof(FormulaError))
+                if (sheet[name].GetValue().GetType() == typeof(double))
                 {
-                    throw new UndefinedVariableException(sheet[name].GetContents().ToString());
+                    return (double)sheet[name].GetValue();
                 }
-                return (double)sheet[name].GetValue();
             }
-            return 0; // should never run
+            throw new FormulaEvaluationException(name);
         }
 
         /// <summary>

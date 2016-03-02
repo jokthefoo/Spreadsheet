@@ -939,7 +939,7 @@ namespace PS6GradingTests
         public void Stress5()
         {
             int seed = 47;
-            int size = 831;
+            int size = 833;
             AbstractSpreadsheet s = new Spreadsheet();
             Random rand = new Random(seed);
             for (int i = 0; i < 1000; i++)
