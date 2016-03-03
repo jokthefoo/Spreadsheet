@@ -11,7 +11,9 @@ namespace SSGui
             ssp = spreadsheetPanel;
             CellName = "A1";
         }
-
+        /// <summary>
+        /// The spreadsheetpanel
+        /// </summary>
         private SpreadsheetPanel ssp;
         /// <summary>
         /// Fired when close button is clicked
@@ -35,6 +37,14 @@ namespace SSGui
         /// Fires when the contents box text is changed
         /// </summary>
         public event Action ContentsEvent;
+        /// <summary>
+        /// Fires when the red X is hit
+        /// </summary>
+        public event Action<FormClosingEventArgs> XCloseEvent;
+        /// <summary>
+        /// Fires when help is clicked
+        /// </summary>
+        public event Action HelpEvent;
 
         /// <summary>
         /// Set the contents textbox
@@ -85,6 +95,14 @@ namespace SSGui
         }
 
         /// <summary>
+        /// Set the Close warning box
+        /// </summary>
+        public DialogResult CloseMessage(string s)
+        {
+            return MessageBox.Show(null, s, "Close File?", MessageBoxButtons.YesNo);
+        }
+
+        /// <summary>
         /// Gets the spreadsheetpanel
         /// </summary>
         public SpreadsheetPanel spreadSheetPanel
@@ -130,9 +148,9 @@ namespace SSGui
             openFileDialog.DefaultExt = "ss";
             openFileDialog.Filter = "Spreadsheet files(*.ss)|*.ss| All files |*.*";
             DialogResult result = openFileDialog.ShowDialog();
-            if(result == DialogResult.Yes || result == DialogResult.OK)
+            if (result == DialogResult.Yes || result == DialogResult.OK)
             {
-                if(FileChosenEvent != null)
+                if (FileChosenEvent != null)
                 {
                     FileChosenEvent(openFileDialog.FileName);
                 }
@@ -144,7 +162,7 @@ namespace SSGui
         /// </summary>
         private void closeItem_Click(object sender, EventArgs e)
         {
-            if(CloseEvent != null)
+            if (CloseEvent != null)
             {
                 CloseEvent();
             }
@@ -155,7 +173,7 @@ namespace SSGui
         /// </summary>
         private void newWindow_Click(object sender, EventArgs e)
         {
-            if(NewEvent != null)
+            if (NewEvent != null)
             {
                 NewEvent();
             }
@@ -169,9 +187,9 @@ namespace SSGui
             saveFileDialog.DefaultExt = "ss";
             saveFileDialog.Filter = "Spreadsheet files(*.ss)|*.ss| All files |*.*";
             DialogResult result = saveFileDialog.ShowDialog();
-            if(result == DialogResult.Yes || result == DialogResult.OK)
+            if (result == DialogResult.Yes || result == DialogResult.OK)
             {
-                if(FileSaveEvent != null)
+                if (FileSaveEvent != null)
                 {
                     FileSaveEvent(saveFileDialog.FileName);
                 }
@@ -183,9 +201,31 @@ namespace SSGui
         /// </summary>
         private void contentsTextBox_KeyUp(object sender, KeyEventArgs e)
         {
-            if(e.KeyCode == Keys.Enter && ContentsEvent != null)
+            if (e.KeyCode == Keys.Enter && ContentsEvent != null)
             {
                 ContentsEvent();
+            }
+        }
+
+        /// <summary>
+        /// Handles when the user clicks the red X
+        /// </summary>
+        private void SpreadsheetWindow_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (XCloseEvent != null)
+            {
+                XCloseEvent(e);
+            }
+        }
+
+        /// <summary>
+        /// Handles when help is clicked
+        /// </summary>
+        private void helpTool_Click(object sender, EventArgs e)
+        {
+            if (HelpEvent != null)
+            {
+                HelpEvent();
             }
         }
     }

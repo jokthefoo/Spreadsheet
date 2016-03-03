@@ -272,13 +272,13 @@ namespace SS
             formula = new Formula(formula.ToString().ToUpper());
             if (!sheet.ContainsKey(name))
             {
-                sheet.Add(name, new Cell(name, formula));
+                sheet.Add(name, new Cell(name, ""));
             }
 
-            Dependencies.DependencyGraph tempGraph = graph;
+            Dependencies.DependencyGraph tempGraph = new Dependencies.DependencyGraph(graph);
             Cell c;
             HashSet<string> set = new HashSet<string>();
-
+            
             graph.ReplaceDependees(name, formula.GetVariables());
 
             try

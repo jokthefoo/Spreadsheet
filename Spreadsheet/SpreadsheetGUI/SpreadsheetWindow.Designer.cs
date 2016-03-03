@@ -43,6 +43,7 @@
             this.cellContentsLabel = new System.Windows.Forms.Label();
             this.openFileDialog = new System.Windows.Forms.OpenFileDialog();
             this.saveFileDialog = new System.Windows.Forms.SaveFileDialog();
+            this.helpTool = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -71,7 +72,8 @@
             this.newWindow,
             this.openFile,
             this.saveFile,
-            this.closeItem});
+            this.closeItem,
+            this.helpTool});
             this.fileMenu.Name = "fileMenu";
             this.fileMenu.Size = new System.Drawing.Size(44, 24);
             this.fileMenu.Text = "File";
@@ -79,28 +81,28 @@
             // newWindow
             // 
             this.newWindow.Name = "newWindow";
-            this.newWindow.Size = new System.Drawing.Size(129, 26);
+            this.newWindow.Size = new System.Drawing.Size(181, 26);
             this.newWindow.Text = "New";
             this.newWindow.Click += new System.EventHandler(this.newWindow_Click);
             // 
             // openFile
             // 
             this.openFile.Name = "openFile";
-            this.openFile.Size = new System.Drawing.Size(129, 26);
+            this.openFile.Size = new System.Drawing.Size(181, 26);
             this.openFile.Text = "Open...";
             this.openFile.Click += new System.EventHandler(this.openFile_Click);
             // 
             // saveFile
             // 
             this.saveFile.Name = "saveFile";
-            this.saveFile.Size = new System.Drawing.Size(129, 26);
+            this.saveFile.Size = new System.Drawing.Size(181, 26);
             this.saveFile.Text = "Save...";
             this.saveFile.Click += new System.EventHandler(this.saveFile_Click);
             // 
             // closeItem
             // 
             this.closeItem.Name = "closeItem";
-            this.closeItem.Size = new System.Drawing.Size(129, 26);
+            this.closeItem.Size = new System.Drawing.Size(181, 26);
             this.closeItem.Text = "Close";
             this.closeItem.Click += new System.EventHandler(this.closeItem_Click);
             // 
@@ -155,6 +157,13 @@
             this.cellContentsLabel.TabIndex = 7;
             this.cellContentsLabel.Text = "Contents:";
             // 
+            // helpTool
+            // 
+            this.helpTool.Name = "helpTool";
+            this.helpTool.Size = new System.Drawing.Size(181, 26);
+            this.helpTool.Text = "Help";
+            this.helpTool.Click += new System.EventHandler(this.helpTool_Click);
+            // 
             // SpreadsheetWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
@@ -171,6 +180,7 @@
             this.MainMenuStrip = this.menuStrip;
             this.Name = "SpreadsheetWindow";
             this.Text = "Spreadsheet";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.SpreadsheetWindow_FormClosing);
             this.menuStrip.ResumeLayout(false);
             this.menuStrip.PerformLayout();
             this.ResumeLayout(false);
@@ -195,6 +205,7 @@
         private System.Windows.Forms.MenuStrip menuStrip;
         private System.Windows.Forms.OpenFileDialog openFileDialog;
         private System.Windows.Forms.SaveFileDialog saveFileDialog;
+        private System.Windows.Forms.ToolStripMenuItem helpTool;
     }
 }
 
