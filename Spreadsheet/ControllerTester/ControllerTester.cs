@@ -1,91 +1,118 @@
-﻿using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SSGui;
 using System.Windows.Forms;
 
 namespace ControllerTester
 {
     [TestClass]
-    public class ControllerTester : ISpreadsheetView
+    public class ControllerTester
     {
         [TestMethod]
-        public void TestMethod1()
+        public void TestCloseEvent()
         {
-            ControllerTester window = new ControllerTester();
-            new Controller(window);
-            if (CloseEvent != null)
-            {
-                CloseEvent();
-            }
-            if (XCloseEvent != null)
-            {
-                XCloseEvent(new FormClosingEventArgs(CloseReason.ApplicationExitCall, false));
-            }
-            FileChosenEvent("testing");
-            NewEvent();
-            //spreadSheetPanel.SelectionChanged();
-            ContentsEvent();
-            FileSaveEvent("test");
-            HelpEvent();
+            SpreadsheetViewStub stub = new SpreadsheetViewStub();
+            stub.spreadSheetPanel = new SpreadsheetPanel();
+            Controller controller = new Controller(stub);
+            stub.FireCloseEvent();
+            Assert.IsTrue(stub.CalledDoClose);
         }
 
-        public string CellName
+        [TestMethod]
+        public void TestNewEvent()
         {
-            set { }
+            SpreadsheetViewStub stub = new SpreadsheetViewStub();
+            stub.spreadSheetPanel = new SpreadsheetPanel();
+            Controller controller = new Controller(stub);
+            stub.FireNewEvent();
+            Assert.IsTrue(stub.CalledOpenNew);
         }
 
-        public string Contents
+        [TestMethod]
+        public void TestHelpName()
         {
-            get { return ""; }
-            set { }
+            SpreadsheetViewStub stub = new SpreadsheetViewStub();
+            stub.spreadSheetPanel = new SpreadsheetPanel();
+            Controller controller = new Controller(stub);
+            stub.FireHelpEvent();
+            Assert.IsTrue(stub.Message.Equals("Click on a cell to select it.\nEnter desired contents of cell into \"Contents\" box and press enter to apply."));
         }
 
-        public string Message
+        [TestMethod]
+        public void TestContentsBox()
         {
-            set { }
+            SpreadsheetViewStub stub = new SpreadsheetViewStub();
+            stub.spreadSheetPanel = new SpreadsheetPanel();
+            Controller controller = new Controller(stub);
+            stub.FireContentsEvent();
+            Assert.AreEqual("Cannot change cell contents to " + null + " because: " + "Value cannot be null.", stub.Message);
         }
 
-        public string Name
+        [TestMethod]
+        public void TestContentsBox2()
         {
-            set { }
+            SpreadsheetViewStub stub = new SpreadsheetViewStub();
+            stub.spreadSheetPanel = new SpreadsheetPanel();
+            Controller controller = new Controller(stub);
+            stub.FireFileChosenEvent("../../testing1.ss");
+            stub.Contents = "2";
+            stub.FireContentsEvent();
+            Assert.AreEqual("2", stub.Value);
         }
 
-        public SpreadsheetPanel spreadSheetPanel
+        [TestMethod]
+        public void TestSaveAndTitle()
         {
-            get { return new SpreadsheetPanel(); }
+            SpreadsheetViewStub stub = new SpreadsheetViewStub();
+            stub.spreadSheetPanel = new SpreadsheetPanel();
+            Controller controller = new Controller(stub);
+            stub.FireFileSaveEvent("../../testing.ss");
+            Assert.AreEqual(stub.Title, "../../testing.ss");
         }
 
-        public string Title
+        [TestMethod]
+        public void TestOpenFile()
         {
-            set { }
+            SpreadsheetViewStub stub = new SpreadsheetViewStub();
+            stub.spreadSheetPanel = new SpreadsheetPanel();
+            Controller controller = new Controller(stub);
+            stub.FireFileChosenEvent("../../testing1.ss");
+            Assert.AreEqual("../../testing1.ss",stub.Title);
+            Assert.AreEqual(stub.Contents, "=A2");
         }
 
-        public string Value
+        [TestMethod]
+        public void TestOpenFile1()
         {
-            set { }
+            SpreadsheetViewStub stub = new SpreadsheetViewStub();
+            stub.spreadSheetPanel = new SpreadsheetPanel();
+            Controller controller = new Controller(stub);
+            stub.FireFileChosenEvent("../../NotRealFile.ss");
+            Assert.IsTrue(stub.Message.StartsWith("Unable"));
         }
 
-        public event Action CloseEvent;
-        public event Action ContentsEvent;
-        public event Action<string> FileChosenEvent;
-        public event Action<string> FileSaveEvent;
-        public event Action HelpEvent;
-        public event Action NewEvent;
-        public event Action<System.Windows.Forms.FormClosingEventArgs> XCloseEvent;
-
-        public System.Windows.Forms.DialogResult CloseMessage(string s)
+        [TestMethod]
+        public void TestXClose()
         {
-            throw new NotImplementedException();
+            SpreadsheetViewStub stub = new SpreadsheetViewStub();
+            stub.spreadSheetPanel = new SpreadsheetPanel();
+            Controller controller = new Controller(stub);
+            stub.FireFileChosenEvent("../../testing1.ss");
+            stub.Contents = "2";
+            stub.FireContentsEvent();
+            FormClosingEventArgs e;
+            e = new FormClosingEventArgs(CloseReason.UserClosing, true);
+            stub.FireXCloseEvent(e);
+            Assert.AreEqual(true, e.Cancel);
         }
 
-        public void DoClose()
+        [TestMethod]
+        public void TestSelectionChange()
         {
-            throw new NotImplementedException();
-        }
-
-        public void OpenNew()
-        {
-            throw new NotImplementedException();
+            SpreadsheetViewStub stub = new SpreadsheetViewStub();
+            stub.spreadSheetPanel = new SpreadsheetPanel();
+            Controller controller = new Controller(stub);
+            stub.FireSelectionEvent(stub.spreadSheetPanel);
+            Assert.AreEqual(null,stub.Name);
         }
     }
 }

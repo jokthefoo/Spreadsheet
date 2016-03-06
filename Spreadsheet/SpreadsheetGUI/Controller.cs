@@ -26,7 +26,7 @@ namespace SSGui
             window.XCloseEvent += XHandleClose;
             window.FileChosenEvent += HandleFileChosen;
             window.NewEvent += HandleNew;
-            window.spreadSheetPanel.SelectionChanged += HandleSelectionChanged;
+            window.SelectionEvent += HandleSelectionChanged;
             window.ContentsEvent += HandleContentsBoxChange;
             window.FileSaveEvent += HandleSaveChosen;
             window.HelpEvent += HandleHelp;
@@ -100,12 +100,14 @@ namespace SSGui
             {
                 TextReader read = File.OpenText(filename);
                 spreadsheet = new Spreadsheet(read);
+                window.Title = filename;
                 ClearSheet();
                 foreach (string s in spreadsheet.GetNamesOfAllNonemptyCells())
                 {
                     setCell(s);
                 }
                 RefreshTextBoxes();
+                read.Close();
             }
             catch (Exception e)
             {
@@ -135,6 +137,7 @@ namespace SSGui
         private void HandleSaveChosen(string filename)
         {
             StreamWriter w = new StreamWriter(filename);
+            window.Title = filename;
             spreadsheet.Save(w);
             w.Close();
         }

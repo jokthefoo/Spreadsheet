@@ -9,8 +9,22 @@ namespace SSGui
         {
             InitializeComponent();
             ssp = spreadsheetPanel;
+            ssp.SelectionChanged += SelectionChangedEvent;
             CellName = "A1";
         }
+
+        /// <summary>
+        /// Fire our selection event
+        /// </summary>
+        /// <param name="sender"></param>
+        private void SelectionChangedEvent(SpreadsheetPanel sender)
+        {
+            if(SelectionEvent != null)
+            {
+                SelectionEvent(sender);
+            }
+        }
+
         /// <summary>
         /// The spreadsheetpanel
         /// </summary>
@@ -45,6 +59,10 @@ namespace SSGui
         /// Fires when help is clicked
         /// </summary>
         public event Action HelpEvent;
+        /// <summary>
+        /// Handles when cell is selected
+        /// </summary>
+        public event Action<SpreadsheetPanel> SelectionEvent;
 
         /// <summary>
         /// Set the contents textbox

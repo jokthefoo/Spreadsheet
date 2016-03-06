@@ -33,6 +33,11 @@ namespace SSGui
         /// Handles when contents box is changed
         /// </summary>
         event Action ContentsEvent;
+        /// <summary>
+        /// Handles selection of a cell event
+        /// </summary>
+        event Action<SpreadsheetPanel> SelectionEvent;
+
         string Name { set; }
         /// <summary>
         /// Current cell name textbox
