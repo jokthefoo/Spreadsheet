@@ -47,8 +47,7 @@ namespace SSGui
         {
             try
             {
-                spreadsheet.SetContentsOfCell(activeCell, window.Contents);
-                foreach (string s in spreadsheet.GetNamesOfAllNonemptyCells())
+                foreach (string s in spreadsheet.SetContentsOfCell(activeCell, window.Contents))
                 {
                     setCell(s);
                 }
